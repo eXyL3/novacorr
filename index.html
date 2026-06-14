@@ -61,13 +61,16 @@
 <div id="buffs"></div>
 <div id="toast" class="hidden"></div>
 
-<button id="shopToggle">▲ UPGRADES</button>
+<button id="shopToggle" aria-expanded="false">
+  <span class="toggleIcon">⌃</span>
+  <span class="toggleLabel">UPGRADES</span>
+</button>
 <div id="shop">
   <div id="shopHead">
     <div id="shopTabs">
-      <button class="tab active" data-tab="offense">OFFENSE</button>
-      <button class="tab" data-tab="tactical">TACTICAL</button>
-      <button class="tab" data-tab="core">CORE</button>
+      <button class="tab active" data-tab="offense"><span>⚔</span> OFFENSE</button>
+      <button class="tab" data-tab="tactical"><span>◎</span> TACTICAL</button>
+      <button class="tab" data-tab="core"><span>⬡</span> CORE</button>
     </div>
     <button id="qtyBtn" title="Buy quantity">×1</button>
   </div>

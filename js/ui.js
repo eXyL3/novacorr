@@ -113,11 +113,17 @@ export function initUI(game, audio) {
     refreshShop();
   });
 
+  function syncShopToggle(open) {
+    shopToggle.querySelector('.toggleIcon').textContent = open ? '⌄' : '⌃';
+    shopToggle.querySelector('.toggleLabel').textContent = open ? 'CLOSE' : 'UPGRADES';
+    shopToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   shopToggle.addEventListener('click', () => {
     audio.ensure();
     const open = shop.classList.toggle('open');
     document.body.classList.toggle('shopOpen', open);
-    shopToggle.textContent = open ? '▼ CLOSE' : '▲ UPGRADES';
+    syncShopToggle(open);
     if (open) refreshShop();
   });
 
@@ -675,7 +681,7 @@ export function initUI(game, audio) {
     refreshShards();
     shop.classList.remove('open');
     document.body.classList.remove('shopOpen');
-    shopToggle.textContent = '▲ UPGRADES';
+    syncShopToggle(false);
     overlay.classList.remove('hidden');
   };
 
