@@ -714,23 +714,10 @@ export function initUI(game, audio) {
 
   const combo = $('combo');
   const buffsEl = $('buffs');
-  const bountyLine = $('bountyLine');
   let hudT = 0;
   let lastCombo = 0;
   let hintT = 0;
   let hintGone = false;
-
-  function bountyText(b) {
-    switch (b.id) {
-      case 'blastkills': return `★ BOUNTY: BLAST-KILL ${b.prog}/${b.target}`;
-      case 'fling':      return `★ BOUNTY: FLING-KILL ${b.prog}/${b.target}`;
-      case 'pickups':    return `★ BOUNTY: COLLECT ${b.prog}/${b.target} POWER-UPS`;
-      case 'combo':      return `★ BOUNTY: REACH ×${b.target} COMBO (${b.prog})`;
-      case 'nodamage':   return '★ BOUNTY: TAKE NO CORE DAMAGE (+1◆)';
-      case 'speed':      return `★ BOUNTY: CLEAR IN ${Math.max(0, Math.ceil(b.target - (game.time - game.waveStart)))}s (+1◆)`;
-      default: return '';
-    }
-  }
 
   function tick(dt) {
     hudT += dt;
@@ -744,13 +731,6 @@ export function initUI(game, audio) {
     waveProg.style.width = (game.waveTotal > 0
       ? Math.min(100, 100 * game.waveKills / game.waveTotal)
       : 0) + '%';
-    if (game.bounty && game.state === 'play') {
-      bountyLine.classList.remove('hidden');
-      bountyLine.classList.toggle('done', game.bounty.done);
-      bountyLine.textContent = game.bounty.done ? '✔ BOUNTY COMPLETE' : bountyText(game.bounty);
-    } else {
-      bountyLine.classList.add('hidden');
-    }
     if (game.combo >= 5 && game.state === 'play') {
       combo.textContent = `COMBO ×${game.combo} — +${Math.round((game.comboMult() - 1) * 100)}% GOLD`;
       combo.classList.remove('hidden');

@@ -1,5 +1,5 @@
 import { TAU, rand, clamp, chance, fmt } from './utils.js';
-import { UPGRADES, SHARD_UPGRADES, PERKS, MUTATORS, ENEMY_TYPES, CORE_R, ACHIEVEMENTS, PICKUPS, BOSS_VARIANTS, WORLD_EVENTS, BUILDINGS, BOUNTIES, CLASSES, ARTIFACTS, RARITY, TECH_TREE, GEAR_SLOTS, GEAR_MODS, GEAR_RARITY, GEAR_CAP } from './config.js';
+import { UPGRADES, SHARD_UPGRADES, PERKS, MUTATORS, ENEMY_TYPES, CORE_R, ACHIEVEMENTS, PICKUPS, BOSS_VARIANTS, WORLD_EVENTS, BUILDINGS, CLASSES, ARTIFACTS, RARITY, TECH_TREE, GEAR_SLOTS, GEAR_MODS, GEAR_RARITY, GEAR_CAP } from './config.js';
 import { Particles } from './particles.js';
 
 const SAVE_KEY = 'novaCoreSave_v1';
@@ -208,7 +208,7 @@ export class Game {
       odCooldown: Math.max(15, 30 - 1.2 * odLvl) * (art('chrono') ? 0.85 : 1),
       // ultimate (charged by kills)
       ultNeed: Math.max(20, Math.round(60 * Math.pow(0.75, p('overcharge')))),
-      comboWindow: 2.5 + 1.5 * p('bounty'),
+      comboWindow: 1.6 + 1.5 * p('bounty'),
       reactive: p('reactive'),
       frostNova: p('frostnova') > 0,
     };
@@ -390,7 +390,9 @@ export class Game {
   }
 
   comboMult() {
-    return 1 + Math.min(0.5, this.combo * 0.01);
+    // smaller, harder-earned bonus: needs a sustained ~44 streak for the max,
+    // and the tight combo window (below) drops it during any lull
+    return 1 + Math.min(0.35, this.combo * 0.008);
   }
 
   // ---------- run lifecycle ----------
@@ -476,28 +478,13 @@ export class Game {
     this.queue = q;
     this.waveTotal = q.length;
     this.waveKills = 0;
-    // per-wave bounty
+    // per-wave kill counters (used by perks/achievements/feel, not bounties)
     this.blastKillsWave = 0;
     this.flingKillsWave = 0;
     this.pickupsWave = 0;
     this.comboPeakWave = 0;
     this.coreDamagedWave = false;
     this.waveStart = this.time;
-    const eligible = BOUNTIES.filter((b) => n >= b.minWave);
-    if (eligible.length > 0 && n >= 2) {
-      const def = eligible[Math.floor(Math.random() * eligible.length)];
-      this.bounty = {
-        id: def.id,
-        live: !!def.live,
-        end: !!def.end,
-        shard: !!def.shard,
-        target: def.target ? def.target(n) : 0,
-        prog: 0,
-        done: false,
-      };
-    } else {
-      this.bounty = null;
-    }
     this.surges = n >= 4 ? 1 + Math.floor(n / 12) : 0;
     this.surgeTimer = rand(7, 13);
     this.warning = null;
@@ -647,7 +634,7 @@ export class Game {
     const mut = this.mutator || { spdM: 1, hpM: 1, goldM: 1 };
     // tankier curve so waves are a real fight and progression earns its pace
     let hp = T.hp * 18 * Math.pow(1.17, w - 1) * (1 + Math.max(0, w - 20) * 0.018) * mut.hpM;
-    let gold = T.gold * 3.5 * Math.pow(1.105, w - 1) * mut.goldM;
+    let gold = T.gold * 2.9 * Math.pow(1.105, w - 1) * mut.goldM;
     let r = T.r;
     let mass = T.mass;
     // elites: rare super-charged variants from wave 12 on
@@ -1013,19 +1000,6 @@ export class Game {
     return true;
   }
 
-  // ---------- bounties ----------
-
-  completeBounty() {
-    const b = this.bounty;
-    if (!b || b.done) return;
-    b.done = true;
-    const g = Math.round(45 * Math.pow(1.12, this.wave) * this.stats.goldMult);
-    this.addGold(g);
-    if (b.shard) this.shards += 1;
-    this.particles.text(0, -CORE_R - 56, '★ BOUNTY +' + fmt(g) + (b.shard ? ' +1◆' : ''), '#ffd24d', true);
-    this.audio.play('shard');
-  }
-
   // ---------- deployable buildings ----------
 
   goldUnit() {
@@ -1187,15 +1161,6 @@ export class Game {
       this.checkAchievements();
     }
 
-    // live bounty progress
-    if (this.bounty && !this.bounty.done && this.bounty.live) {
-      const b = this.bounty;
-      b.prog = b.id === 'blastkills' ? this.blastKillsWave
-        : b.id === 'fling' ? this.flingKillsWave
-        : b.id === 'pickups' ? this.pickupsWave
-        : b.id === 'combo' ? this.comboPeakWave : 0;
-      if (b.prog >= b.target) this.completeBounty();
-    }
 
     // echo crystal: delayed mini-blast
     if (this.echoBlast) {
@@ -1439,11 +1404,6 @@ export class Game {
         this.spawnTimer = this.spawnInterval * rand(0.5, 1.5);
       }
     } else if (this.enemies.length === 0 && this.surges <= 0 && !this.warning) {
-      // judge end-of-wave bounties before moving on
-      if (this.bounty && !this.bounty.done && this.bounty.end) {
-        if (this.bounty.id === 'nodamage' && !this.coreDamagedWave) this.completeBounty();
-        else if (this.bounty.id === 'speed' && (this.time - this.waveStart) < this.bounty.target) this.completeBounty();
-      }
       const bonus = Math.round(15 * Math.pow(1.12, this.wave) * st.goldMult);
       this.addGold(bonus);
       this.tp += 1 + Math.floor(this.wave / 10);

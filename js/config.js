@@ -110,7 +110,7 @@ export const PERKS = [
   { id: 'secondwind',  icon: '💖', name: 'Second Wind',  desc: 'Restore 50% core HP right now' },
   { id: 'reactive',    icon: '⛨', name: 'Reactive Plating', desc: 'Getting hit emits a damaging shockwave' },
   { id: 'frostnova',   icon: '🧊', name: 'Frost Nova',   desc: 'Shield break freezes nearby enemies', once: true },
-  { id: 'bounty',      icon: '⏱', name: 'Bounty Hunter', desc: 'Combo window +1.5s' },
+  { id: 'bounty',      icon: '⏱', name: 'Relentless',    desc: 'Combo window +1.5s' },
   { id: 'overcharge',  icon: '⚡', name: 'Overcharge',   desc: 'Ultimate charges 25% faster' },
   { id: 'mirror',      icon: '🪞', name: 'Mirror Rounds', desc: 'Bullets bounce off screen edges' },
 ];
@@ -122,16 +122,6 @@ export const BUILDINGS = {
   tesla:   { icon: '⚡', name: 'Tesla',   costU: 20, limit: 3 },
   barrier: { icon: '⬣', name: 'Barrier', costU: 10, limit: 4 },
 };
-
-// Per-wave mini-objectives. live ones complete mid-wave, end ones are judged at wave clear.
-export const BOUNTIES = [
-  { id: 'blastkills', minWave: 2, live: true, target: (w) => 6 + Math.floor(w / 3) },
-  { id: 'fling',      minWave: 3, live: true, target: () => 3 },
-  { id: 'pickups',    minWave: 5, live: true, target: (w) => (w < 12 ? 1 : 2) },
-  { id: 'combo',      minWave: 4, live: true, target: (w) => 12 + w },
-  { id: 'nodamage',   minWave: 2, end: true,  shard: true },
-  { id: 'speed',      minWave: 3, end: true,  shard: true, target: () => 35 },
-];
 
 // Core classes — pick one per run on the rebuild screen. Unlock with shards.
 export const CLASSES = [
