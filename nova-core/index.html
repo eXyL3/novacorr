@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<title>NOVA CORE — Tower Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div class="stat"><span class="label">WAVE</span><span class="val" id="waveVal">1</span></div>
+  <div class="stat gold"><span class="label">GOLD</span><span class="val" id="goldVal">0</span></div>
+  <div class="stat shards"><span class="label">SHARDS</span><span class="val" id="shardVal">0</span></div>
+  <div class="stat tech"><span class="label">TECH</span><span class="val" id="tpVal">0</span></div>
+  <div class="stat"><span class="label">BEST</span><span class="val" id="bestVal">0</span></div>
+</div>
+<div id="waveProgWrap"><div id="waveProg"></div></div>
+
+<div id="topBtns">
+  <button id="speedBtn" class="iconBtn" title="Game speed">1×</button>
+  <button id="pauseBtn" class="iconBtn" title="Pause">⏸</button>
+  <button id="techBtn" class="iconBtn" title="Tech tree">🔬</button>
+  <button id="gearBtn" class="iconBtn" title="Inventory">🎽</button>
+  <button id="artBtn" class="iconBtn" title="Artifacts">🎒</button>
+  <button id="achBtn" class="iconBtn" title="Achievements">🏆</button>
+  <button id="settingsBtn" class="iconBtn" title="Settings">⚙</button>
+  <button id="muteBtn" class="iconBtn" title="Toggle sound">🔊</button>
+  <button id="sacrificeBtn" class="iconBtn" title="Sacrifice the core for shards">☠</button>
+</div>
+
+<div id="combo" class="hidden"></div>
+<div id="waveBanner" class="hidden"></div>
+<div id="pausedLabel" class="hidden">⏸ PAUSED</div>
+<div id="hint">TAP ANYWHERE TO BLAST &nbsp;⦿&nbsp; BUY UPGRADES BELOW</div>
+
+<div id="abilityBar">
+  <button id="abUlt" class="abBtn ult" title="Ultimate (3)">⚡<span class="abCd"></span></button>
+  <button id="abSing" class="abBtn hidden" title="Singularity (1)">🌑<span class="abCd"></span></button>
+  <button id="abOd" class="abBtn hidden" title="Overdrive (2)">🔥<span class="abCd"></span></button>
+</div>
+
+<div id="buildBar">
+  <button class="buildBtn" data-build="mine">💣<span class="bCost"></span></button>
+  <button class="buildBtn" data-build="tesla">⚡<span class="bCost"></span></button>
+  <button class="buildBtn" data-build="barrier">⬣<span class="bCost"></span></button>
+</div>
+
+<div id="bountyLine" class="hidden"></div>
+<div id="buffs"></div>
+<div id="toast" class="hidden"></div>
+
+<button id="shopToggle">▲ UPGRADES</button>
+<div id="shop">
+  <div id="shopHead">
+    <div id="shopTabs">
+      <button class="tab active" data-tab="offense">OFFENSE</button>
+      <button class="tab" data-tab="tactical">TACTICAL</button>
+      <button class="tab" data-tab="core">CORE</button>
+    </div>
+    <button id="qtyBtn" title="Buy quantity">×1</button>
+  </div>
+  <div id="shopGrid"></div>
+</div>
+
+<div id="overlay" class="hidden">
+  <div id="overlayCard">
+    <h1 id="overTitle">CORE DESTROYED</h1>
+    <p id="overStats"></p>
+    <p class="shardEarn" id="overShards"></p>
+    <h2>CORE CLASS</h2>
+    <div id="classRow"></div>
+    <h2>SHARD UPGRADES <span id="overShardBal"></span></h2>
+    <div id="shardGrid"></div>
+    <button id="rebuildBtn">⟳ REBUILD CORE</button>
+  </div>
+</div>
+
+<div id="perkOverlay" class="hidden">
+  <div id="perkCard">
+    <h1>⬢ EVOLUTION</h1>
+    <p class="perkSub">Choose one — lasts for this run</p>
+    <div id="perkGrid"></div>
+  </div>
+</div>
+
+<div id="settings" class="hidden">
+  <div id="settingsCard">
+    <h1>SETTINGS</h1>
+    <div class="setRow"><span>Sound</span><button id="setSound" class="setBtn"></button></div>
+    <div class="setRow"><span>Screen shake</span><button id="setShake" class="setBtn"></button></div>
+    <div class="setRow"><span>Damage numbers</span><button id="setDmg" class="setBtn"></button></div>
+    <div class="setRow"><span>Effects quality</span><button id="setQual" class="setBtn"></button></div>
+    <div class="setRow"><span>Core theme</span><button id="setTheme" class="setBtn"></button></div>
+    <button id="resetSave">⚠ RESET ALL PROGRESS</button>
+    <button id="closeSettings">CLOSE</button>
+  </div>
+</div>
+
+<div id="achievements" class="hidden">
+  <div id="achCard">
+    <h1>🏆 ACHIEVEMENTS</h1>
+    <p id="lifeStats"></p>
+    <div id="achList"></div>
+    <button id="closeAch">CLOSE</button>
+  </div>
+</div>
+
+<div id="artifactsPanel" class="hidden">
+  <div id="artCard">
+    <h1>🎒 ARTIFACTS</h1>
+    <p class="perkSub">Boss drops. Tap to equip — max 3. Duplicates become shards.</p>
+    <div id="artGrid"></div>
+    <button id="closeArt">CLOSE</button>
+  </div>
+</div>
+
+<div id="techPanel" class="hidden">
+  <div id="techCard">
+    <h1>🔬 TECH TREE <span id="tpBal"></span></h1>
+    <p class="perkSub">Permanent research. Earn ⚛ by clearing waves and killing bosses.</p>
+    <div id="techCols"></div>
+    <button id="closeTech">CLOSE</button>
+  </div>
+</div>
+
+<div id="gearPanel" class="hidden">
+  <div id="gearCard">
+    <h1>🎽 INVENTORY <span id="scrapBal"></span></h1>
+    <div id="gearSlots"></div>
+    <div id="gearDetail" class="hidden"></div>
+    <div id="gearGrid"></div>
+    <button id="closeGear">CLOSE</button>
+  </div>
+</div>
+
+<div id="welcome" class="hidden">
+  <div id="welcomeCard">
+    <h1>WELCOME BACK</h1>
+    <div id="welcomeBody"></div>
+    <button id="claimBtn">CLAIM</button>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
