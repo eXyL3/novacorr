@@ -16,8 +16,10 @@ let W = 0, H = 0;
 // We tell the sim the viewport is `W/zoom` wide and render the world scaled by
 // `zoom`, so spawn distances, walls and input all stay consistent.
 function cameraZoom(w, h) {
-  const TARGET = 620; // world units we want visible across the short side
-  return Math.min(1, Math.max(0.6, Math.min(w, h) / TARGET));
+  const TARGET = 820; // world units we want visible across the short side
+  // never zoom in past 0.92 (so even big screens sit back a little) and never
+  // smaller than 0.46 (phones) so things stay legible.
+  return Math.min(0.92, Math.max(0.46, Math.min(w, h) / TARGET));
 }
 
 function resize() {

@@ -118,13 +118,64 @@ button { font-family: var(--font-body); }
 
 #topQuick { display: flex; gap: 7px; }
 
+/* the ☰ menu opens as a labeled dropdown card — clear, clickable navigation
+   that keeps the progression panels separate from the upgrade shop */
 #menuGroup {
-  display: grid;
-  grid-template-columns: repeat(2, 40px);
-  gap: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
-#menuBtn { display: none; } /* desktop shows every button, no hamburger */
+#menuGroup.collapsed { display: none; }
+
+.menuSection {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--dim);
+  padding: 8px 12px 4px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menuItem:hover, .menuItem:active {
+  background: rgba(125, 249, 255, 0.08);
+  border-color: var(--line);
+}
+
+.menuItem .miIcon { font-size: 18px; width: 22px; text-align: center; flex: none; }
+.menuItem.danger { color: var(--red); }
+.menuItem.danger:hover { background: rgba(255, 90, 90, 0.1); border-color: rgba(255, 90, 90, 0.4); }
+
+#menuBtn.open {
+  border-color: rgba(125, 249, 255, 0.6);
+  box-shadow: 0 0 12px rgba(125, 249, 255, 0.3);
+  color: var(--cyan);
+}
 
 .iconBtn {
   width: 40px;
@@ -1174,31 +1225,11 @@ body.shopOpen #shopToggle { bottom: calc(46dvh + 8px); }
 /* ---------- responsive ---------- */
 
 @media (max-width: 600px) {
-  /* declutter the top: only 3 quick controls stay visible, the rest live
-     behind the ☰ menu. Bigger 44px targets for easy thumb access. */
+  /* bigger 44px touch targets; quick controls stack into a narrow column so
+     the HUD keeps most of the width */
   .iconBtn { width: 44px; height: 44px; font-size: 17px; border-radius: 11px; }
   #speedBtn { font-size: 14px; }
-
-  #topQuick { flex-direction: column; }        /* narrow 1-wide column */
-  #menuBtn { display: block; }
-  #menuBtn.open {
-    border-color: rgba(125, 249, 255, 0.6);
-    box-shadow: 0 0 12px rgba(125, 249, 255, 0.3);
-    color: var(--cyan);
-  }
-
-  /* the menu pops open as a compact panel under the quick controls */
-  #menuGroup {
-    grid-template-columns: repeat(2, 44px);
-    gap: 8px;
-    padding: 8px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-  }
-  #menuGroup.collapsed { display: none; }
+  #topQuick { flex-direction: column; }
 
   /* let the HUD flow from the left and reserve room for the quick column
      so stats never slide underneath it */

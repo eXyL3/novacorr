@@ -164,7 +164,8 @@ export function initUI(game, audio) {
   });
 
   const muteBtn = $('muteBtn');
-  const syncMute = () => { muteBtn.textContent = audio.enabled ? '🔊' : '🔇'; };
+  const muteIcon = $('muteIcon');
+  const syncMute = () => { if (muteIcon) muteIcon.textContent = audio.enabled ? '🔊' : '🔇'; };
   syncMute();
   muteBtn.addEventListener('click', () => {
     audio.enabled = !audio.enabled;
@@ -173,7 +174,29 @@ export function initUI(game, audio) {
     game.save();
   });
 
-  // ---------- collapsible top menu (mobile declutter) ----------
+  // ---------- modal panels: open/close with auto-pause ----------
+  // Browsing a full-screen panel shouldn't let the core die underneath you.
+  // We only resume if *we* were the one who paused (manual pause is preserved).
+  let pausedByPanel = false;
+  function openPanel(el) {
+    if (game.state === 'play' && !game.paused) {
+      game.paused = true;
+      pausedByPanel = true;
+      syncPause();
+      pausedLabel.classList.add('hidden');
+    }
+    el.classList.remove('hidden');
+  }
+  function closePanel(el) {
+    el.classList.add('hidden');
+    if (pausedByPanel) {
+      game.paused = false;
+      pausedByPanel = false;
+      syncPause();
+    }
+  }
+
+  // ---------- collapsible top menu ----------
   const menuBtn = $('menuBtn'), menuGroup = $('menuGroup');
   if (menuBtn && menuGroup) {
     const closeMenu = () => { menuGroup.classList.add('collapsed'); menuBtn.classList.remove('open'); };
@@ -204,7 +227,6 @@ export function initUI(game, audio) {
   // ---------- settings ----------
 
   const settings = $('settings');
-  let pausedBeforeSettings = false;
 
   function syncSettings() {
     $('setSound').textContent = audio.enabled ? 'ON' : 'OFF';
@@ -222,18 +244,12 @@ export function initUI(game, audio) {
 
   $('settingsBtn').addEventListener('click', () => {
     audio.ensure();
-    pausedBeforeSettings = game.paused;
-    game.paused = true;
-    syncPause();
-    pausedLabel.classList.add('hidden');
     syncSettings();
-    settings.classList.remove('hidden');
+    openPanel(settings);
   });
 
   $('closeSettings').addEventListener('click', () => {
-    settings.classList.add('hidden');
-    game.paused = pausedBeforeSettings;
-    syncPause();
+    closePanel(settings);
     game.save();
   });
 
@@ -388,9 +404,9 @@ export function initUI(game, audio) {
   $('achBtn').addEventListener('click', () => {
     audio.ensure();
     buildAchList();
-    achOverlay.classList.remove('hidden');
+    openPanel(achOverlay);
   });
-  $('closeAch').addEventListener('click', () => achOverlay.classList.add('hidden'));
+  $('closeAch').addEventListener('click', () => closePanel(achOverlay));
 
   game.onAchievement = (a) => showToast(`🏆 ${a.name} &nbsp;+${a.reward} ◆`);
 
@@ -425,9 +441,9 @@ export function initUI(game, audio) {
   $('artBtn').addEventListener('click', () => {
     audio.ensure();
     buildArtGrid();
-    artPanel.classList.remove('hidden');
+    openPanel(artPanel);
   });
-  $('closeArt').addEventListener('click', () => artPanel.classList.add('hidden'));
+  $('closeArt').addEventListener('click', () => closePanel(artPanel));
 
   game.onArtifact = (a, dupe, dupShards) => {
     showToast(dupe
@@ -470,9 +486,9 @@ export function initUI(game, audio) {
   $('techBtn').addEventListener('click', () => {
     audio.ensure();
     buildTechTree();
-    techPanel.classList.remove('hidden');
+    openPanel(techPanel);
   });
-  $('closeTech').addEventListener('click', () => techPanel.classList.add('hidden'));
+  $('closeTech').addEventListener('click', () => closePanel(techPanel));
 
   // ---------- gear / inventory ----------
 
@@ -563,9 +579,9 @@ export function initUI(game, audio) {
   $('gearBtn').addEventListener('click', () => {
     audio.ensure();
     buildGearPanel();
-    gearPanel.classList.remove('hidden');
+    openPanel(gearPanel);
   });
-  $('closeGear').addEventListener('click', () => gearPanel.classList.add('hidden'));
+  $('closeGear').addEventListener('click', () => closePanel(gearPanel));
 
   game.onGear = (item, autoScrap) => {
     const R = GEAR_RARITY[item.rarity];

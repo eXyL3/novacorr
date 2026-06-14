@@ -29,13 +29,15 @@
     <button id="menuBtn" class="iconBtn" title="Menu">☰</button>
   </div>
   <div id="menuGroup" class="collapsed">
-    <button id="muteBtn" class="iconBtn" title="Toggle sound">🔊</button>
-    <button id="techBtn" class="iconBtn" title="Tech tree">🔬</button>
-    <button id="gearBtn" class="iconBtn" title="Inventory">🎽</button>
-    <button id="artBtn" class="iconBtn" title="Artifacts">🎒</button>
-    <button id="achBtn" class="iconBtn" title="Achievements">🏆</button>
-    <button id="settingsBtn" class="iconBtn" title="Settings">⚙</button>
-    <button id="sacrificeBtn" class="iconBtn" title="Sacrifice the core for shards">☠</button>
+    <div class="menuSection">PROGRESSION</div>
+    <button id="techBtn" class="menuItem"><span class="miIcon">🔬</span><span>Tech Tree</span></button>
+    <button id="gearBtn" class="menuItem"><span class="miIcon">🎽</span><span>Inventory</span></button>
+    <button id="artBtn" class="menuItem"><span class="miIcon">🎒</span><span>Artifacts</span></button>
+    <button id="achBtn" class="menuItem"><span class="miIcon">🏆</span><span>Achievements</span></button>
+    <div class="menuSection">SYSTEM</div>
+    <button id="muteBtn" class="menuItem"><span class="miIcon" id="muteIcon">🔊</span><span>Sound</span></button>
+    <button id="settingsBtn" class="menuItem"><span class="miIcon">⚙</span><span>Settings</span></button>
+    <button id="sacrificeBtn" class="menuItem danger"><span class="miIcon">☠</span><span>Sacrifice Core</span></button>
   </div>
 </div>
 
