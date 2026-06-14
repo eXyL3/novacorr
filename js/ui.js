@@ -173,6 +173,25 @@ export function initUI(game, audio) {
     game.save();
   });
 
+  // ---------- collapsible top menu (mobile declutter) ----------
+  const menuBtn = $('menuBtn'), menuGroup = $('menuGroup');
+  if (menuBtn && menuGroup) {
+    const closeMenu = () => { menuGroup.classList.add('collapsed'); menuBtn.classList.remove('open'); };
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const collapsed = menuGroup.classList.toggle('collapsed');
+      menuBtn.classList.toggle('open', !collapsed);
+    });
+    // picking any item closes the menu
+    menuGroup.addEventListener('click', closeMenu);
+    // tapping anywhere outside closes it too
+    document.addEventListener('pointerdown', (e) => {
+      if (menuGroup.classList.contains('collapsed')) return;
+      if (e.target === menuBtn || menuGroup.contains(e.target)) return;
+      closeMenu();
+    });
+  }
+
   $('sacrificeBtn').addEventListener('click', () => {
     if (game.state !== 'play') return;
     const earned = game.shardPreview();

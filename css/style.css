@@ -109,11 +109,22 @@ button { font-family: var(--font-body); }
   position: fixed;
   top: calc(8px + env(safe-area-inset-top));
   right: calc(8px + env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  z-index: 22;
+}
+
+#topQuick { display: flex; gap: 7px; }
+
+#menuGroup {
   display: grid;
   grid-template-columns: repeat(2, 40px);
   gap: 7px;
-  z-index: 11;
 }
+
+#menuBtn { display: none; } /* desktop shows every button, no hamburger */
 
 .iconBtn {
   width: 40px;
@@ -1163,18 +1174,39 @@ body.shopOpen #shopToggle { bottom: calc(46dvh + 8px); }
 /* ---------- responsive ---------- */
 
 @media (max-width: 600px) {
-  /* shrink the top-right button cluster */
-  #topBtns { grid-template-columns: repeat(2, 36px); gap: 6px; }
-  .iconBtn { width: 36px; height: 36px; font-size: 15px; border-radius: 9px; }
-  #speedBtn { font-size: 12px; }
+  /* declutter the top: only 3 quick controls stay visible, the rest live
+     behind the ☰ menu. Bigger 44px targets for easy thumb access. */
+  .iconBtn { width: 44px; height: 44px; font-size: 17px; border-radius: 11px; }
+  #speedBtn { font-size: 14px; }
 
-  /* let the HUD flow from the left and reserve room for the button cluster
+  #topQuick { flex-direction: column; }        /* narrow 1-wide column */
+  #menuBtn { display: block; }
+  #menuBtn.open {
+    border-color: rgba(125, 249, 255, 0.6);
+    box-shadow: 0 0 12px rgba(125, 249, 255, 0.3);
+    color: var(--cyan);
+  }
+
+  /* the menu pops open as a compact panel under the quick controls */
+  #menuGroup {
+    grid-template-columns: repeat(2, 44px);
+    gap: 8px;
+    padding: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  }
+  #menuGroup.collapsed { display: none; }
+
+  /* let the HUD flow from the left and reserve room for the quick column
      so stats never slide underneath it */
   #hud {
     justify-content: flex-start;
     gap: 5px;
     padding-left: calc(8px + env(safe-area-inset-left));
-    padding-right: calc(84px + env(safe-area-inset-right));
+    padding-right: calc(60px + env(safe-area-inset-right));
   }
   .stat { flex: 1 1 0; min-width: 0; padding: 4px 6px; }
   .stat .label { font-size: 8px; letter-spacing: 1px; }
@@ -1195,7 +1227,7 @@ body.shopOpen #shopToggle { bottom: calc(46dvh + 8px); }
 }
 
 @media (max-width: 360px) {
-  #hud { padding-right: calc(76px + env(safe-area-inset-right)); gap: 4px; }
+  #hud { padding-right: calc(56px + env(safe-area-inset-right)); gap: 4px; }
   .stat { padding: 3px 4px; }
   .stat .label { font-size: 7px; }
   .stat .val { font-size: 12px; }

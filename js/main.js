@@ -12,6 +12,14 @@ const ui = initUI(game, audio);
 
 let W = 0, H = 0;
 
+// Pull the camera back on small screens so more of the battlefield is visible.
+// We tell the sim the viewport is `W/zoom` wide and render the world scaled by
+// `zoom`, so spawn distances, walls and input all stay consistent.
+function cameraZoom(w, h) {
+  const TARGET = 620; // world units we want visible across the short side
+  return Math.min(1, Math.max(0.6, Math.min(w, h) / TARGET));
+}
+
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
@@ -21,8 +29,10 @@ function resize() {
   canvas.style.width = W + 'px';
   canvas.style.height = H + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  game.view.w = W;
-  game.view.h = H;
+  const zoom = cameraZoom(W, H);
+  game.view.zoom = zoom;
+  game.view.w = W / zoom;
+  game.view.h = H / zoom;
   invalidateCache();
 }
 window.addEventListener('resize', resize);
@@ -34,7 +44,8 @@ let lastX = 0, lastY = 0, lastT = 0, velX = 0, velY = 0;
 
 function worldPos(e) {
   const r = canvas.getBoundingClientRect();
-  return { x: e.clientX - r.left - W / 2, y: e.clientY - r.top - H / 2 };
+  const z = game.view.zoom || 1;
+  return { x: (e.clientX - r.left - W / 2) / z, y: (e.clientY - r.top - H / 2) / z };
 }
 
 canvas.addEventListener('pointerdown', (e) => {

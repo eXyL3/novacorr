@@ -103,8 +103,10 @@ export function draw(ctx, game, w, h) {
   ctx.globalAlpha = 1;
 
   const off = pt.shakeOffset();
+  const zoom = (game.view && game.view.zoom) || 1;
   ctx.save();
   ctx.translate(w / 2 + off.x, h / 2 + off.y);
+  if (zoom !== 1) ctx.scale(zoom, zoom);
 
   // ambient rings
   ctx.strokeStyle = 'rgba(125,249,255,0.05)';
@@ -130,7 +132,8 @@ export function draw(ctx, game, w, h) {
   // surge warning arrow at the screen edge
   if (game.warning) {
     const a = game.warning.angle;
-    const R = Math.min(w, h) / 2 - 46;
+    // anchor to the visible world edge (view extent), not raw pixels
+    const R = Math.min(game.view.w, game.view.h) / 2 - 46;
     const wx = Math.cos(a) * R, wy = Math.sin(a) * R;
     ctx.save();
     ctx.translate(wx, wy);

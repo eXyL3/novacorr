@@ -7,7 +7,7 @@ const SAVE_KEY = 'novaCoreSave_v1';
 export class Game {
   constructor(audio) {
     this.audio = audio;
-    this.view = { w: 800, h: 600 };
+    this.view = { w: 800, h: 600, zoom: 1 };
     this.particles = new Particles();
 
     this.gold = 0;
