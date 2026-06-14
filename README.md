@@ -18,6 +18,8 @@ Then open **http://localhost:8377/nova-core/** — works on desktop and mobile
 ## How to play
 
 - The core auto-fires at the nearest enemy. You don't aim — you **build**.
+- Weapons have visible, finite targeting range. Upgrade **Targeting** to extend
+  the core's reach; turret levels improve their range, damage, and fire rate.
 - **Tap / click anywhere** to fire a Nova Blast: AoE damage + a physics shockwave
   that hurls enemies away. Watch the outer ring around the core for its cooldown.
 - Use the **1×/2×/3× button** to speed up time, **⏸** to pause, **⚙** for
@@ -33,6 +35,8 @@ Then open **http://localhost:8377/nova-core/** — works on desktop and mobile
   Cannon, Executioner, Second Wind...). Each run builds differently.
 - **Wave mutators**: ⚡ FRENZY, 👥 HORDE, 🗿 TITANS and 💰 GOLD RUSH waves
   shake up the rhythm from wave 6 on.
+- **Adaptive threat**: clearing waves far ahead of pace raises the visible
+  THREAT level, adding enemies and boosting their HP/speed. Slower clears lower it.
 - **Active abilities** (bottom-left buttons, or keys 1/2; space fires the
   blast at the densest cluster): 🌑 Singularity drags enemies into a black
   hole that detonates; 🔥 Overdrive multiplies fire rate for a few seconds.

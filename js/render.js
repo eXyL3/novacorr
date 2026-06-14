@@ -165,6 +165,17 @@ export function draw(ctx, game, w, h) {
     ctx.globalAlpha = 1;
   }
 
+  // The core no longer fires across the arena; keep its upgradeable boundary readable.
+  if (game.stats && game.stats.targetRange) {
+    ctx.strokeStyle = 'rgba(125,249,255,0.09)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 9]);
+    ctx.beginPath();
+    ctx.arc(0, 0, game.stats.targetRange, 0, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
   // core glow (overdrive turns it furnace-orange; flares brighter with combo)
   const od = game.odActive > 0;
   const comboHeat = clamp((game.combo - 5) / 45, 0, 1); // 0 at ×5 → 1 at ×50

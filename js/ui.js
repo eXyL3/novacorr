@@ -315,9 +315,10 @@ export function initUI(game, audio) {
     bannerTimer = setTimeout(() => banner.classList.add('hidden'), 1900);
   }
 
-  game.onWave = (n, isBoss, mutName, bossName) => {
+  game.onWave = (n, isBoss, mutName, bossName, threat) => {
     let txt = isBoss ? `⚠ ${bossName || 'BOSS'} — WAVE ${n} ⚠` : `WAVE ${n}`;
     if (mutName) txt += ` — ${mutName}`;
+    if (threat > 0) txt += ` — THREAT ${threat}`;
     showBanner(txt, isBoss ? 'boss' : null);
   };
 

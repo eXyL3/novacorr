@@ -142,8 +142,8 @@ export class Game {
     const art = (id) => this.equipped.indexOf(id) >= 0;
     const cls = this.coreClass || 'assault';
 
-    const damage = 8 * Math.pow(1.26, l('damage'))
-      * (1 + 0.25 * sh('power'))
+    const damage = 8 * Math.pow(1.19, l('damage'))
+      * (1 + 0.20 * sh('power'))
       * (1 + 0.35 * p('heavy'))
       * (1 + 0.60 * p('glass'))
       * (cls === 'assault' ? 1.10 : 1);
@@ -157,6 +157,7 @@ export class Game {
       fireRate: 1.6 * (1 + 0.10 * l('firerate')) * (1 + 0.10 * sh('overclock'))
         * (1 + 0.25 * p('adrenaline')) * (1 + 0.10 * p('swift'))
         * (art('flux') ? 1.08 : 1) * (cls === 'pyro' ? 0.9 : 1),
+      targetRange: 235 + 17 * l('range'),
       multishot: 1 + l('multishot') + (art('forge') ? 1 : 0),
       pierce: l('pierce'),
       projSpeed: 430 * (1 + 0.08 * sh('overclock')) * (1 + 0.20 * p('swift')),
@@ -175,17 +176,20 @@ export class Game {
       repulsorRadius: 90 + 14 * l('repulsor'),
       repulsorDps: damage * 0.15 * l('repulsor'),
       repulsorForce: 260 + 40 * l('repulsor'),
-      coreMaxHp: 120 * Math.pow(1.35, l('corehp')) * vit * bulwark * Math.pow(0.75, p('glass'))
+      coreMaxHp: 120 * Math.pow(1.26, l('corehp')) * vit * bulwark * Math.pow(0.75, p('glass'))
         * (cls === 'vampire' ? 0.85 : 1) * (art('titan') ? 1.15 : 1),
       regen: (1 + 1.5 * l('regen')) * (1 + 0.5 * sh('vitality')) * (cls === 'vampire' ? 1.5 : 1),
-      shieldMax: l('shield') > 0 ? 30 * Math.pow(1.4, l('shield') - 1) * vit * bulwark : 0,
+      shieldMax: l('shield') > 0 ? 30 * Math.pow(1.30, l('shield') - 1) * vit * bulwark : 0,
       lifesteal: 0.004 * l('lifesteal') + 0.005 * p('vampiric')
         + (cls === 'vampire' ? 0.006 : 0) + (art('fang') ? 0.004 : 0),
-      goldMult: (1 + 0.25 * l('gold')) * (1 + 0.25 * sh('wealth')) * (1 + 0.30 * p('magnet'))
+      goldMult: (1 + 0.16 * l('gold')) * (1 + 0.20 * sh('wealth')) * (1 + 0.25 * p('magnet'))
         * (art('gilded') ? 1.10 : 1),
       batteryLvl: l('battery'),
       orbitals: l('orbital') + p('twin'),
       turrets: l('turret') + p('sentry'),
+      turretRange: 175 + 18 * l('turret'),
+      turretDamage: 0.45 + 0.12 * l('turret'),
+      turretFireRate: 0.45 + 0.05 * l('turret'),
       drones: l('drone'),
       mirror: p('mirror'),
       autoBlast: sh('autoblast') > 0,
@@ -415,6 +419,7 @@ export class Game {
     this.odTimer = 0;
     this.odActive = 0;
     this.goldFrac = 0;
+    this.threat = 0;
     this.combo = 0;
     this.comboT = 0;
     this.muzzle = null;
@@ -456,7 +461,8 @@ export class Game {
     }
     const mut = this.mutator || { spdM: 1, hpM: 1, goldM: 1, countM: 1 };
 
-    const count = Math.round(Math.min(9 + Math.round(n * 1.8), 55) * mut.countM);
+    const pressureCount = 1 + this.threat * 0.055;
+    const count = Math.round(Math.min(9 + Math.round(n * 1.8), 55) * mut.countM * pressureCount);
     const q = [];
     for (let i = 0; i < count; i++) {
       const r = Math.random();
@@ -493,7 +499,7 @@ export class Game {
     if (!silent) this.audio.play('wave');
     if (this.onWave) {
       this.onWave(n, isBoss, this.mutator ? this.mutator.name : null,
-        this.bossVariant ? this.bossVariant.name : null);
+        this.bossVariant ? this.bossVariant.name : null, this.threat);
     }
   }
 
@@ -633,7 +639,8 @@ export class Game {
     const w = this.wave;
     const mut = this.mutator || { spdM: 1, hpM: 1, goldM: 1 };
     // tankier curve so waves are a real fight and progression earns its pace
-    let hp = T.hp * 18 * Math.pow(1.17, w - 1) * (1 + Math.max(0, w - 20) * 0.018) * mut.hpM;
+    const pressureHp = 1 + this.threat * 0.14;
+    let hp = T.hp * 18 * Math.pow(1.16, w - 1) * (1 + Math.max(0, w - 20) * 0.015) * mut.hpM * pressureHp;
     let gold = T.gold * 2.9 * Math.pow(1.105, w - 1) * mut.goldM;
     let r = T.r;
     let mass = T.mass;
@@ -649,7 +656,7 @@ export class Game {
       id: this.nextId++,
       type, x, y, vx: 0, vy: 0,
       r, mass,
-      speed: T.speed * rand(0.85, 1.15) * mut.spdM,
+      speed: T.speed * rand(0.85, 1.15) * mut.spdM * (1 + this.threat * 0.018),
       hp, maxHp: hp, gold,
       dmg: T.dmg * (5 + w * 1.3) * (elite ? 2 : 1),
       color: T.color, sides: T.sides,
@@ -677,13 +684,14 @@ export class Game {
 
   // ---------- combat ----------
 
-  nearestEnemy(x, y) {
+  nearestEnemy(x, y, maxRange = Infinity) {
     let best = null, bd = Infinity;
+    const maxD2 = maxRange * maxRange;
     for (const e of this.enemies) {
       if (e.dead) continue;
       const dx = e.x - x, dy = e.y - y;
       const d = dx * dx + dy * dy;
-      if (d < bd) { bd = d; best = e; }
+      if (d <= maxD2 && d < bd) { bd = d; best = e; }
     }
     return best;
   }
@@ -701,7 +709,7 @@ export class Game {
         bounce: st.bounces,
         wallB: st.mirror,
         color: st.explosionPct > 0 ? '#ffb13d' : '#aef6ff',
-        r: 4, life: 1.8,
+        r: 4, life: Math.max(0.45, (st.targetRange + 35) / st.projSpeed),
         hits: new Set(),
         dead: false,
       });
@@ -1213,7 +1221,7 @@ export class Game {
         }
         b.zapT -= dt;
         if (b.zapT <= 0) {
-          const target = this.nearestEnemy(b.x, b.y);
+          const target = this.nearestEnemy(b.x, b.y, 190);
           if (target && Math.hypot(target.x - b.x, target.y - b.y) < 190) {
             b.zapT = 0.8;
             this.damageEnemy(target, st.damage * 1.3, 0, 0, false, false, 'tesla');
@@ -1404,7 +1412,12 @@ export class Game {
         this.spawnTimer = this.spawnInterval * rand(0.5, 1.5);
       }
     } else if (this.enemies.length === 0 && this.surges <= 0 && !this.warning) {
-      const bonus = Math.round(15 * Math.pow(1.12, this.wave) * st.goldMult);
+      const clearTime = Math.max(1, this.time - this.waveStart);
+      const targetTime = 18 + Math.min(12, this.wave * 0.45);
+      if (clearTime < targetTime * 0.72) this.threat = Math.min(10, this.threat + 1);
+      else if (clearTime > targetTime * 1.35) this.threat = Math.max(0, this.threat - 1);
+      const threatReward = 1 + this.threat * 0.06;
+      const bonus = Math.round(12 * Math.pow(1.105, this.wave) * st.goldMult * threatReward);
       this.addGold(bonus);
       this.tp += 1 + Math.floor(this.wave / 10);
       this.particles.text(0, -CORE_R - 30, 'WAVE CLEAR +' + fmt(bonus), '#ffd24d', true);
@@ -1610,7 +1623,7 @@ export class Game {
     const bulletDmg = st.damage * (this.quadT > 0 ? 3 : 1);
     this.fireTimer -= dt;
     if (this.fireTimer <= 0) {
-      const target = this.nearestEnemy(0, 0);
+      const target = this.nearestEnemy(0, 0, st.targetRange);
       if (target) {
         this.fireTimer = 1 / fireRate;
         const aim = this.shoot(0, 0, CORE_R + 4, target, bulletDmg, st.multishot, st.pierce);
@@ -1631,11 +1644,11 @@ export class Game {
       t.y = Math.sin(ang) * 52;
       t.cd -= dt;
       if (t.cd <= 0) {
-        const target = this.nearestEnemy(t.x, t.y);
+        const target = this.nearestEnemy(t.x, t.y, st.turretRange);
         if (target) {
-          t.cd = 1 / (fireRate * 0.6);
+          t.cd = 1 / (fireRate * st.turretFireRate);
           t.aim = Math.atan2(target.y - t.y, target.x - t.x);
-          this.shoot(t.x, t.y, 10, target, bulletDmg * 0.5, 1, 0);
+          this.shoot(t.x, t.y, 10, target, bulletDmg * st.turretDamage, 1, 0);
         }
       }
     }

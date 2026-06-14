@@ -8,6 +8,8 @@ export const UPGRADES = [
     desc: (s) => `${fmt(s.damage)} per bullet` },
   { id: 'firerate',  cat: 'offense', icon: '⚡', name: 'Fire Rate',  baseCost: 30,  growth: 1.46, max: 30,
     desc: (s) => `${s.fireRate.toFixed(1)} shots/sec` },
+  { id: 'range',     cat: 'offense', icon: '◎', name: 'Targeting',  baseCost: 45,  growth: 1.58, max: 10,
+    desc: (s) => `${Math.round(s.targetRange)}px core range` },
   { id: 'multishot', cat: 'offense', icon: '🔱', name: 'Multishot',  baseCost: 400, growth: 5.5,  max: 5,
     desc: (s) => `${s.multishot} projectiles` },
   { id: 'pierce',    cat: 'offense', icon: '➳', name: 'Pierce',     baseCost: 150, growth: 3.2,  max: 6,
@@ -32,8 +34,8 @@ export const UPGRADES = [
     desc: (s) => `${Math.round(s.repulsorRadius)}px aura • ${fmt(s.repulsorDps)} dmg/s` },
   { id: 'orbital',   cat: 'tactical', icon: '☄', name: 'Orbitals',    baseCost: 250, growth: 4.5, max: 8,
     desc: (s) => `${s.orbitals} orbiting ${s.orbitals === 1 ? 'blade' : 'blades'}` },
-  { id: 'turret',    cat: 'tactical', icon: '🗼', name: 'Turrets',     baseCost: 600, growth: 5.0, max: 4,
-    desc: (s) => `${s.turrets} auto-${s.turrets === 1 ? 'turret' : 'turrets'}` },
+  { id: 'turret',    cat: 'tactical', icon: '🗼', name: 'Turrets',     baseCost: 450, growth: 2.7, max: 4,
+    desc: (s) => `${s.turrets} auto-${s.turrets === 1 ? 'turret' : 'turrets'} | ${Math.round(s.turretRange)}px | ${Math.round(s.turretDamage * 100)}% dmg` },
   { id: 'singularity', cat: 'tactical', icon: '🌑', name: 'Singularity', baseCost: 800, growth: 2.4, max: 8,
     desc: (s) => s.singLvl === 0
       ? 'Unlock: black hole that drags enemies in'
@@ -77,9 +79,9 @@ export const UNLOCK_WAVE = {
 // Shard upgrades — permanent across prestiges. desc() receives the level.
 export const SHARD_UPGRADES = [
   { id: 'power',     icon: '⚔', name: 'Power',      baseCost: 3,  growth: 1.9, max: 999,
-    desc: (l) => `+${l * 25}% all damage` },
+    desc: (l) => `+${l * 20}% all damage` },
   { id: 'wealth',    icon: '🜚', name: 'Wealth',     baseCost: 3,  growth: 1.9, max: 999,
-    desc: (l) => `+${l * 25}% gold` },
+    desc: (l) => `+${l * 20}% gold` },
   { id: 'vitality',  icon: '🛡', name: 'Vitality',   baseCost: 2,  growth: 1.8, max: 999,
     desc: (l) => `+${l * 40}% core HP & shield, +${l * 50}% regen` },
   { id: 'overclock', icon: '⚙', name: 'Overclock',  baseCost: 5,  growth: 2.0, max: 10,
