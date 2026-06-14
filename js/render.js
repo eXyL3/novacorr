@@ -165,17 +165,18 @@ export function draw(ctx, game, w, h) {
     ctx.globalAlpha = 1;
   }
 
-  // core glow (overdrive turns it furnace-orange)
+  // core glow (overdrive turns it furnace-orange; flares brighter with combo)
   const od = game.odActive > 0;
-  const pulse = 1 + (od ? 0.12 : 0.06) * Math.sin(t * (od ? 9 : 3));
+  const comboHeat = clamp((game.combo - 5) / 45, 0, 1); // 0 at ×5 → 1 at ×50
+  const pulse = (1 + (od ? 0.12 : 0.06) * Math.sin(t * (od ? 9 : 3))) * (1 + 0.5 * comboHeat);
   const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, CORE_R * 3.2 * pulse);
   if (od) {
     cg.addColorStop(0, 'rgba(255,177,61,0.6)');
     cg.addColorStop(0.4, 'rgba(255,110,40,0.22)');
     cg.addColorStop(1, 'rgba(255,110,40,0)');
   } else {
-    cg.addColorStop(0, glow(0.5));
-    cg.addColorStop(0.4, glow(0.18));
+    cg.addColorStop(0, glow(0.5 + 0.35 * comboHeat));
+    cg.addColorStop(0.4, glow(0.18 + 0.12 * comboHeat));
     cg.addColorStop(1, glow(0));
   }
   ctx.fillStyle = cg;
@@ -324,7 +325,18 @@ export function draw(ctx, game, w, h) {
   // --- enemies ---
   for (const e of game.enemies) {
     const ghost = e.type === 'wraith';
-    if (ghost) ctx.globalAlpha = 0.55 + 0.3 * Math.sin(t * 6 + e.phase);
+    const ap = e.appear === undefined ? 1 : e.appear;
+    const spawning = ap < 1;
+    if (spawning) {
+      // scale + fade in from a point so spawns read as "warping in"
+      ctx.save();
+      const sc = 0.25 + 0.75 * ap;
+      ctx.translate(e.x, e.y);
+      ctx.scale(sc, sc);
+      ctx.translate(-e.x, -e.y);
+      ctx.globalAlpha = ap;
+    }
+    if (ghost) ctx.globalAlpha = (spawning ? ap : 1) * (0.55 + 0.3 * Math.sin(t * 6 + e.phase));
     polygon(ctx, e.x, e.y, e.r, e.sides, e.rot);
     ctx.fillStyle = e.color;
     ctx.fill();
@@ -383,6 +395,7 @@ export function draw(ctx, game, w, h) {
       ctx.fillStyle = e.type === 'boss' ? '#ff3df0' : e.elite ? '#fff' : '#4dff88';
       ctx.fillRect(e.x - bw / 2, e.y - e.r - 8, bw * clamp(e.hp / e.maxHp, 0, 1), 3);
     }
+    if (spawning) { ctx.restore(); ctx.globalAlpha = 1; }
   }
 
   // --- turrets ---
@@ -716,6 +729,15 @@ export function draw(ctx, game, w, h) {
   // ultimate flash
   if (game.ultFlash > 0) {
     ctx.fillStyle = `rgba(255,255,255,${Math.min(0.8, game.ultFlash * 1.8)})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // core-hit flash: a quick red bloom from the screen edges
+  if (game.coreHurt > 0) {
+    const hg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.32, w / 2, h / 2, Math.hypot(w, h) / 2);
+    hg.addColorStop(0, 'rgba(255,40,40,0)');
+    hg.addColorStop(1, `rgba(255,40,40,${clamp(game.coreHurt, 0, 0.6) * 0.7})`);
+    ctx.fillStyle = hg;
     ctx.fillRect(0, 0, w, h);
   }
 

@@ -19,6 +19,7 @@ export class Game {
     this.paused = false;
     this.timeMult = 1;  // slow-mo / hit-stop envelope, read by main loop for particles
     this.hitStop = 0;   // brief full freeze-frame on impactful kills (real seconds)
+    this.coreHurt = 0;  // red screen-edge flash when the core is hit
     this.opts = { shake: true, dmgText: true, quality: 'high', theme: 'nova' };
     this.life = { kills: 0, bossKills: 0, ults: 0, runs: 0, maxCombo: 0, maxGold: 0 };
     this.ach = {}; // unlocked achievement ids
@@ -171,7 +172,7 @@ export class Game {
         * (art('chrono') ? 0.85 : 1),
       repulsorLvl: l('repulsor'),
       repulsorRadius: 90 + 14 * l('repulsor'),
-      repulsorDps: damage * 0.10 * l('repulsor'),
+      repulsorDps: damage * 0.15 * l('repulsor'),
       repulsorForce: 260 + 40 * l('repulsor'),
       coreMaxHp: 120 * Math.pow(1.35, l('corehp')) * vit * bulwark * Math.pow(0.75, p('glass'))
         * (cls === 'vampire' ? 0.85 : 1) * (art('titan') ? 1.15 : 1),
@@ -189,7 +190,7 @@ export class Game {
       autoBlast: sh('autoblast') > 0,
       cull: p('executioner') > 0,
       // artifact effects
-      orbDmg: 0.65 * (art('razor') ? 1.25 : 1),
+      orbDmg: 0.80 * (art('razor') ? 1.25 : 1),
       blastEcho: art('echo'),
       chainChance: art('storm') ? 0.05 : 0,
       dropMult: art('magnet') ? 1.5 : 1,
@@ -500,7 +501,7 @@ export class Game {
     this.surgeTimer = rand(7, 13);
     this.warning = null;
     this.spawnInterval = Math.max(0.28, Math.pow(0.975, n));
-    this.spawnTimer = silent ? 1.0 : 2.4; // breather between waves
+    this.spawnTimer = silent ? 1.0 : 1.8; // breather between waves
     if (!silent) this.audio.play('wave');
     if (this.onWave) {
       this.onWave(n, isBoss, this.mutator ? this.mutator.name : null,
@@ -643,7 +644,7 @@ export class Game {
     }
     const w = this.wave;
     const mut = this.mutator || { spdM: 1, hpM: 1, goldM: 1 };
-    let hp = T.hp * 15 * Math.pow(1.16, w - 1) * (1 + Math.max(0, w - 20) * 0.015) * mut.hpM;
+    let hp = T.hp * 15 * Math.pow(1.16, w - 1) * (1 + Math.max(0, w - 20) * 0.012) * mut.hpM;
     let gold = T.gold * 4 * Math.pow(1.105, w - 1) * mut.goldM;
     let r = T.r;
     let mass = T.mass;
@@ -678,8 +679,11 @@ export class Game {
       elite,
       slow: 0, slowT: 0,
       flash: 0,
+      appear: 0, // 0→1 scale/fade-in on spawn
       dead: false,
     });
+    // a quick contracting telegraph ring so spawns read clearly
+    this.particles.pop(x, y, type === 'boss' ? '#ff3df0' : T.color, r * (type === 'boss' ? 5 : 2.6), 0.5);
   }
 
   // ---------- combat ----------
@@ -896,6 +900,10 @@ export class Game {
     this.shieldDelay = this.stats.shieldDelayBase || 6;
     this.coreHp -= dmg;
     this.coreDamagedWave = true;
+    if (dmg > 0) {
+      this.coreHurt = Math.min(0.6, (this.coreHurt || 0) + 0.4); // red edge-flash
+      this.particles.addShake(Math.min(8, 2 + dmg * 0.4));
+    }
     this.audio.play('hurt');
     if (this.coreHp <= 0) {
       this.coreHp = 0;
@@ -1154,6 +1162,7 @@ export class Game {
     } else {
       this.timeMult = this.slowMo > 0 ? 0.35 : 1;
     }
+    if (this.coreHurt > 0) this.coreHurt = Math.max(0, this.coreHurt - dt * 2.4);
     if (this.state !== 'play') return;
     if (this.slowMo > 0) this.slowMo -= dt;
     dt *= this.speed * this.timeMult;
@@ -1449,6 +1458,7 @@ export class Game {
     const grabId = this.grab ? this.grab.id : -1;
     for (const e of this.enemies) {
       const d = Math.hypot(e.x, e.y) || 1;
+      if (e.appear < 1) e.appear = Math.min(1, e.appear + dt * 5);
       if (e.flungT > 0) e.flungT -= dt;
       if (e.id === grabId) {
         // player has this one by the scruff — no AI, just physics
