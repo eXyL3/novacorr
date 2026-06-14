@@ -707,6 +707,7 @@ export function initUI(game, audio) {
   const buffsEl = $('buffs');
   const bountyLine = $('bountyLine');
   let hudT = 0;
+  let lastCombo = 0;
   let hintT = 0;
   let hintGone = false;
 
@@ -744,9 +745,15 @@ export function initUI(game, audio) {
     if (game.combo >= 5 && game.state === 'play') {
       combo.textContent = `COMBO ×${game.combo} — +${Math.round((game.comboMult() - 1) * 100)}% GOLD`;
       combo.classList.remove('hidden');
+      if (game.combo !== lastCombo) {
+        combo.classList.remove('bump');
+        void combo.offsetWidth; // restart the animation
+        combo.classList.add('bump');
+      }
     } else {
       combo.classList.add('hidden');
     }
+    lastCombo = game.combo;
     tickAbility(abSing, abSingCd, game.stats.singLvl, game.singTimer, game.singActive);
     tickAbility(abOd, abOdCd, game.stats.odLvl, game.odTimer, game.odActive > 0);
     const ultPct = Math.min(100, Math.round(100 * game.ultCharge / game.stats.ultNeed));

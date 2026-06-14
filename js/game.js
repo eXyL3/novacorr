@@ -17,7 +17,8 @@ export class Game {
     this.shardUp = {};  // shard upgrade levels (permanent)
     this.speed = 1;     // time multiplier: 1, 2 or 3
     this.paused = false;
-    this.timeMult = 1;  // slow-mo envelope, read by main loop for particles
+    this.timeMult = 1;  // slow-mo / hit-stop envelope, read by main loop for particles
+    this.hitStop = 0;   // brief full freeze-frame on impactful kills (real seconds)
     this.opts = { shake: true, dmgText: true, quality: 'high', theme: 'nova' };
     this.life = { kills: 0, bossKills: 0, ults: 0, runs: 0, maxCombo: 0, maxGold: 0 };
     this.ach = {}; // unlocked achievement ids
@@ -779,8 +780,11 @@ export class Game {
     if (this.stats.lifesteal > 0) {
       this.coreHp = Math.min(this.stats.coreMaxHp, this.coreHp + this.stats.lifesteal * this.stats.coreMaxHp);
     }
-    this.particles.spark(e.x, e.y, e.color, e.type === 'boss' ? 40 : 10, e.type === 'boss' ? 380 : 200, 3);
+    this.particles.spark(e.x, e.y, e.color, e.type === 'boss' ? 40 : 12, e.type === 'boss' ? 380 : 220, 3);
     this.particles.coin(e.x, e.y, e.type === 'boss' ? 8 : e.gold > 12 ? 3 : 1);
+    // every kill gets a crisp white pop + colored flash for that satisfying punch
+    this.particles.pop(e.x, e.y, '#ffffff', e.r * 2.4);
+    this.particles.pop(e.x, e.y, e.color, e.r * 3.4, 0.55);
     if (e.type === 'splitter') {
       this.waveTotal += 3;
       for (let i = 0; i < 3; i++) {
@@ -794,10 +798,13 @@ export class Game {
       this.particles.ring(e.x, e.y, e.color, e.r * 4, 4);
       this.particles.shard(e.x, e.y, e.color, e.type === 'boss' ? 10 : 6);
       this.particles.text(e.x, e.y - e.r - 14, '+' + fmt(g), '#ffd24d', true);
+      this.hitStop = Math.max(this.hitStop, 0.05); // freeze-frame on the chunky kills
     }
     if (e.type === 'boss') {
       this.particles.addShake(14);
-      this.slowMo = Math.max(this.slowMo, 0.2); // savor the moment
+      this.particles.pop(e.x, e.y, '#ffffff', e.r * 7);
+      this.hitStop = Math.max(this.hitStop, 0.11);
+      this.slowMo = Math.max(this.slowMo, 0.35); // savor the moment
       this.life.bossKills++;
       this.tp += 5;
       this.audio.play('boss');
@@ -1138,7 +1145,15 @@ export class Game {
   // ---------- main update ----------
 
   update(dt) {
-    this.timeMult = this.slowMo > 0 ? 0.35 : 1;
+    // hit-stop: a few frames of full freeze sells the impact of a big kill.
+    // Decrement on real time so the freeze always ends; slow-mo is the softer
+    // follow-through afterwards.
+    if (this.hitStop > 0) {
+      this.hitStop -= dt;
+      this.timeMult = 0;
+    } else {
+      this.timeMult = this.slowMo > 0 ? 0.35 : 1;
+    }
     if (this.state !== 'play') return;
     if (this.slowMo > 0) this.slowMo -= dt;
     dt *= this.speed * this.timeMult;

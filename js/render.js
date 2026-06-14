@@ -258,6 +258,21 @@ export function draw(ctx, game, w, h) {
   }
   ctx.globalAlpha = 1;
 
+  // impact pops — bright filled discs that flash on each kill
+  for (const p of pt.pops) {
+    const e = p.life * p.life; // ease-out fade
+    ctx.globalAlpha = clamp(e, 0, 1) * p.alpha;
+    const pg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+    pg.addColorStop(0, p.color);
+    pg.addColorStop(0.5, p.color);
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = pg;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
   ctx.globalCompositeOperation = 'source-over';
 
   // --- projectile cores ---
@@ -644,15 +659,33 @@ export function draw(ctx, game, w, h) {
     ctx.stroke();
   }
 
-  // floating numbers
+  // floating numbers — scale-pop in, drift up, fade out, with a dark halo
+  // so they stay readable over the bright glow layer
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   for (const txt of pt.texts) {
+    const maxL = txt.big ? 1.1 : 0.8;
+    const age = 1 - txt.life / maxL;            // 0 → 1 over its lifetime
+    const pop = age < 0.18 ? age / 0.18 : 1;    // quick scale-in
+    const scale = (txt.big ? 1.0 : 0.9) * (0.6 + 0.4 * pop) * (txt.big ? 1.12 : 1);
     ctx.globalAlpha = clamp(txt.life * 1.6, 0, 1);
-    ctx.font = txt.big ? '700 17px Orbitron, "Segoe UI", sans-serif' : '700 12px Rajdhani, "Segoe UI", sans-serif';
+    ctx.save();
+    ctx.translate(txt.x, txt.y);
+    ctx.scale(scale, scale);
+    ctx.font = txt.big ? '700 18px Orbitron, "Segoe UI", sans-serif' : '700 13px Rajdhani, "Segoe UI", sans-serif';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineJoin = 'round';
+    ctx.strokeText(txt.str, 0, 0);
+    ctx.shadowColor = txt.color;
+    ctx.shadowBlur = txt.big ? 12 : 6;
     ctx.fillStyle = txt.color;
-    ctx.fillText(txt.str, txt.x, txt.y);
+    ctx.fillText(txt.str, 0, 0);
+    ctx.restore();
   }
+  ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
+  ctx.textBaseline = 'alphabetic';
 
   ctx.restore();
 

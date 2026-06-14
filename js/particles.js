@@ -7,6 +7,7 @@ export class Particles {
   constructor() {
     this.list = [];   // sparks, dots, homing coins
     this.rings = [];  // expanding shockwave circles
+    this.pops = [];   // bright filled flash discs (kill punch)
     this.texts = [];  // floating damage / gold numbers
     this.shake = 0;
     this.shakeOn = true; // settings toggle
@@ -80,6 +81,12 @@ export class Particles {
     this.rings.push({ x, y, color, r: 6, maxR, width, life: 1 });
   }
 
+  // a bright filled disc that pops out and fades fast — the "impact" flash
+  pop(x, y, color, maxR = 60, alpha = 1) {
+    if (this.pops.length > 28) this.pops.shift();
+    this.pops.push({ x, y, color, r: maxR * 0.35, maxR, life: 1, alpha });
+  }
+
   text(x, y, str, color, big = false) {
     if (this.texts.length >= MAX_TEXTS) {
       if (!big) return; // drop ordinary numbers first when crowded
@@ -103,7 +110,8 @@ export class Particles {
   }
 
   update(dt) {
-    this.shake = Math.max(0, this.shake - dt * 30);
+    // springy decay: big shakes settle fast, small ones don't linger
+    this.shake = Math.max(0, this.shake - (this.shake * 3 + 9) * dt);
 
     for (let i = this.list.length - 1; i >= 0; i--) {
       const p = this.list[i];
@@ -130,6 +138,13 @@ export class Particles {
       r.life -= dt * 2.2;
       if (r.life <= 0) { this.rings.splice(i, 1); continue; }
       r.r += (r.maxR - r.r) * Math.min(1, dt * 9);
+    }
+
+    for (let i = this.pops.length - 1; i >= 0; i--) {
+      const p = this.pops[i];
+      p.life -= dt * 6; // fast — a flash, not a lingering ring
+      if (p.life <= 0) { this.pops.splice(i, 1); continue; }
+      p.r += (p.maxR - p.r) * Math.min(1, dt * 22);
     }
 
     for (let i = this.texts.length - 1; i >= 0; i--) {
