@@ -337,12 +337,27 @@ export function draw(ctx, game, w, h) {
       ctx.globalAlpha = ap;
     }
     if (ghost) ctx.globalAlpha = (spawning ? ap : 1) * (0.55 + 0.3 * Math.sin(t * 6 + e.phase));
+    // solid body
     polygon(ctx, e.x, e.y, e.r, e.sides, e.rot);
     ctx.fillStyle = e.color;
     ctx.fill();
-    // inner shading
-    polygon(ctx, e.x, e.y, e.r * 0.55, e.sides, e.rot);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    // dark inner cavity for depth
+    polygon(ctx, e.x, e.y, e.r * 0.62, e.sides, e.rot);
+    ctx.fillStyle = 'rgba(0,0,0,0.42)';
+    ctx.fill();
+    // top-left sheen wedge
+    polygon(ctx, e.x - e.r * 0.18, e.y - e.r * 0.18, e.r * 0.46, e.sides, e.rot);
+    ctx.fillStyle = 'rgba(255,255,255,0.13)';
+    ctx.fill();
+    // bright rim
+    polygon(ctx, e.x, e.y, e.r, e.sides, e.rot);
+    ctx.strokeStyle = 'rgba(255,255,255,0.32)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // glowing core pip
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, Math.max(1.6, e.r * 0.16), 0, TAU);
     ctx.fill();
     // elite outline
     if (e.elite) {
@@ -351,12 +366,24 @@ export function draw(ctx, game, w, h) {
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // boss inner spinner
+    // boss: menacing counter-rotating rings + spiked crown
     if (e.type === 'boss') {
       polygon(ctx, e.x, e.y, e.r * 0.8, e.sides, -e.rot * 1.5);
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       ctx.lineWidth = 2;
       ctx.stroke();
+      polygon(ctx, e.x, e.y, e.r * 1.18, e.sides, e.rot * 1.2);
+      ctx.strokeStyle = `rgba(255,61,240,${0.5 + 0.3 * Math.sin(t * 5)})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // pulsing spike tips
+      ctx.fillStyle = 'rgba(255,120,245,0.9)';
+      for (let i = 0; i < e.sides; i++) {
+        const a = e.rot * 1.2 + (i * TAU) / e.sides;
+        ctx.beginPath();
+        ctx.arc(e.x + Math.cos(a) * e.r * 1.18, e.y + Math.sin(a) * e.r * 1.18, 2.6, 0, TAU);
+        ctx.fill();
+      }
     }
     // frost tint
     if (e.slowT > 0) {
@@ -607,26 +634,72 @@ export function draw(ctx, game, w, h) {
     ctx.textBaseline = 'alphabetic';
   }
 
-  // --- core body ---
-  ctx.fillStyle = '#0e1830';
-  ctx.beginPath();
-  ctx.arc(0, 0, CORE_R, 0, TAU);
+  // --- core body: layered reactor ---
+  const heat = clamp((game.combo - 5) / 45, 0, 1); // brightens with combo
+  const spin = t * 0.5;
+
+  // rotating segmented outer ring (tech "dashes")
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = glow(0.45 + 0.35 * heat);
+  const SEG = 12;
+  for (let i = 0; i < SEG; i++) {
+    const a0 = spin + (i * TAU) / SEG;
+    ctx.beginPath();
+    ctx.arc(0, 0, CORE_R + 5, a0, a0 + (TAU / SEG) * 0.5);
+    ctx.stroke();
+  }
+
+  // armored hex shell with a shaded gradient body
+  const shell = ctx.createRadialGradient(-CORE_R * 0.35, -CORE_R * 0.35, 2, 0, 0, CORE_R);
+  shell.addColorStop(0, '#22335a');
+  shell.addColorStop(0.65, '#0e1830');
+  shell.addColorStop(1, '#070d1c');
+  polygon(ctx, 0, 0, CORE_R, 6, -spin * 0.6);
+  ctx.fillStyle = shell;
   ctx.fill();
   ctx.strokeStyle = cMain;
   ctx.lineWidth = 2;
   ctx.stroke();
-  polygon(ctx, 0, 0, CORE_R * 0.62, 6, t * 0.6);
-  ctx.strokeStyle = glow(0.7);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  polygon(ctx, 0, 0, CORE_R * 0.85, 6, -t * 0.35);
-  ctx.strokeStyle = glow(0.3);
+
+  // counter-rotating inner plate
+  polygon(ctx, 0, 0, CORE_R * 0.8, 6, spin * 0.9);
+  ctx.strokeStyle = glow(0.4);
   ctx.lineWidth = 1;
   ctx.stroke();
-  ctx.fillStyle = glow(0.55 + 0.25 * Math.sin(t * 3));
+
+  // reactor spokes
+  ctx.save();
+  ctx.rotate(-spin * 1.6);
+  ctx.strokeStyle = glow(0.55);
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 3; i++) {
+    const a = (i * TAU) / 3;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * 6, Math.sin(a) * 6);
+    ctx.lineTo(Math.cos(a) * CORE_R * 0.66, Math.sin(a) * CORE_R * 0.66);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // pulsing plasma heart
+  const pr = 7 + 2 * Math.sin(t * 4) + 3 * heat;
+  const heart = ctx.createRadialGradient(0, 0, 0, 0, 0, pr * 2.6);
+  heart.addColorStop(0, '#ffffff');
+  heart.addColorStop(0.35, glow(0.95));
+  heart.addColorStop(1, glow(0));
+  ctx.fillStyle = heart;
   ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, TAU);
+  ctx.arc(0, 0, pr * 2.6, 0, TAU);
   ctx.fill();
+
+  // orbiting energy nodes
+  ctx.fillStyle = cMain;
+  for (let i = 0; i < 3; i++) {
+    const a = spin * 2 + (i * TAU) / 3;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * CORE_R * 0.92, Math.sin(a) * CORE_R * 0.92, 2.3, 0, TAU);
+    ctx.fill();
+  }
 
   // hp ring around core
   const frac = clamp(game.coreHp / st.coreMaxHp, 0, 1);

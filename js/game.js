@@ -644,8 +644,9 @@ export class Game {
     }
     const w = this.wave;
     const mut = this.mutator || { spdM: 1, hpM: 1, goldM: 1 };
-    let hp = T.hp * 15 * Math.pow(1.16, w - 1) * (1 + Math.max(0, w - 20) * 0.012) * mut.hpM;
-    let gold = T.gold * 4 * Math.pow(1.105, w - 1) * mut.goldM;
+    // tankier curve so waves are a real fight and progression earns its pace
+    let hp = T.hp * 18 * Math.pow(1.17, w - 1) * (1 + Math.max(0, w - 20) * 0.018) * mut.hpM;
+    let gold = T.gold * 3.5 * Math.pow(1.105, w - 1) * mut.goldM;
     let r = T.r;
     let mass = T.mass;
     // elites: rare super-charged variants from wave 12 on
@@ -1060,7 +1061,7 @@ export class Game {
       b.zapT = 0.3;
     } else if (type === 'barrier') {
       b.r = 22;
-      b.hp = 15 * Math.pow(1.16, w - 1) * 8 * (this.stats.barrierHpMult || 1);
+      b.hp = 18 * Math.pow(1.17, w - 1) * 8 * (this.stats.barrierHpMult || 1);
       b.maxHp = b.hp;
     }
     this.buildings.push(b);
@@ -1223,7 +1224,7 @@ export class Game {
           if (e.dead) continue;
           if (Math.hypot(e.x - b.x, e.y - b.y) < e.r + 14) {
             b.dead = true;
-            const dmg = 15 * Math.pow(1.16, this.wave - 1) * 1.8;
+            const dmg = 18 * Math.pow(1.17, this.wave - 1) * 1.8;
             for (const o of this.enemies) {
               if (o.dead) continue;
               const dx = o.x - b.x, dy = o.y - b.y;
@@ -1335,7 +1336,7 @@ export class Game {
     for (const m of this.meteors) {
       m.t -= dt;
       if (m.t <= 0) {
-        const dmg = 15 * Math.pow(1.16, this.wave - 1) * 2.2; // ~2 grunts worth, always relevant
+        const dmg = 18 * Math.pow(1.17, this.wave - 1) * 2.2; // ~2 grunts worth, always relevant
         for (const e of this.enemies) {
           if (e.dead) continue;
           const dx = e.x - m.x, dy = e.y - m.y;

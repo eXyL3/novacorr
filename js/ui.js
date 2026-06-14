@@ -1,4 +1,4 @@
-import { UPGRADES, SHARD_UPGRADES, ACHIEVEMENTS, THEMES, CLASSES, ARTIFACTS, RARITY, BUILDINGS, TECH_TREE, TECH_BRANCHES, GEAR_SLOTS, GEAR_MODS, GEAR_RARITY } from './config.js';
+import { UPGRADES, UNLOCK_WAVE, SHARD_UPGRADES, ACHIEVEMENTS, THEMES, CLASSES, ARTIFACTS, RARITY, BUILDINGS, TECH_TREE, TECH_BRANCHES, GEAR_SLOTS, GEAR_MODS, GEAR_RARITY } from './config.js';
 import { fmt } from './utils.js';
 
 const $ = (id) => document.getElementById(id);
@@ -27,6 +27,8 @@ export function initUI(game, audio) {
       <div class="cCost"></div>`;
     btn.addEventListener('click', () => {
       audio.ensure();
+      const lockWave = UNLOCK_WAVE[def.id] || 0;
+      if ((game.up[def.id] || 0) === 0 && game.wave < lockWave) return; // still locked
       if (game.buyUpgrade(def.id, QTYS[qtyIdx]) > 0) refreshShop();
     });
     shopGrid.appendChild(btn);
@@ -64,9 +66,16 @@ export function initUI(game, audio) {
       if (def.cat !== currentTab) continue;
       const lvl = game.up[def.id] || 0;
       const maxed = lvl >= def.max;
+      const lockWave = UNLOCK_WAVE[def.id] || 0;
+      const locked = lvl === 0 && game.wave < lockWave; // already-bought stays usable
       lvlEl.textContent = 'LV ' + lvl + (def.max <= 30 ? '/' + def.max : '');
       desc.textContent = def.desc(game.stats);
-      btn.classList.remove('affordable', 'maxed');
+      btn.classList.remove('affordable', 'maxed', 'locked');
+      if (locked) {
+        cost.textContent = '🔒 WAVE ' + lockWave;
+        btn.classList.add('locked');
+        continue;
+      }
       if (maxed) {
         cost.textContent = 'MAXED';
         btn.classList.add('maxed');

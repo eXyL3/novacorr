@@ -1059,6 +1059,8 @@ body.shopOpen #shopToggle { bottom: calc(46dvh + 8px); }
 .card.affordable:active { transform: scale(0.97); }
 
 .card.maxed { opacity: 0.8; border-color: rgba(255, 210, 77, 0.5); cursor: default; }
+.card.locked { opacity: 0.4; cursor: default; border-color: rgba(255, 255, 255, 0.08); }
+.card.locked .cCost { color: var(--dim); }
 
 .card .cTop {
   display: flex;

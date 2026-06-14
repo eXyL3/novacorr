@@ -4,9 +4,9 @@ import { fmt } from './utils.js';
 // cat: which shop tab the upgrade lives in (offense / tactical / core).
 export const UPGRADES = [
   // ----- OFFENSE -----
-  { id: 'damage',    cat: 'offense', icon: '⚔', name: 'Damage',     baseCost: 15,  growth: 1.31, max: 999,
+  { id: 'damage',    cat: 'offense', icon: '⚔', name: 'Damage',     baseCost: 18,  growth: 1.37, max: 999,
     desc: (s) => `${fmt(s.damage)} per bullet` },
-  { id: 'firerate',  cat: 'offense', icon: '⚡', name: 'Fire Rate',  baseCost: 25,  growth: 1.40, max: 30,
+  { id: 'firerate',  cat: 'offense', icon: '⚡', name: 'Fire Rate',  baseCost: 30,  growth: 1.46, max: 30,
     desc: (s) => `${s.fireRate.toFixed(1)} shots/sec` },
   { id: 'multishot', cat: 'offense', icon: '🔱', name: 'Multishot',  baseCost: 400, growth: 5.5,  max: 5,
     desc: (s) => `${s.multishot} projectiles` },
@@ -24,9 +24,9 @@ export const UPGRADES = [
   // ----- TACTICAL -----
   { id: 'frost',     cat: 'tactical', icon: '❄', name: 'Cryo Rounds', baseCost: 130, growth: 1.9, max: 6,
     desc: (s) => `Hits slow enemies ${Math.round(s.frostSlow * 100)}% for 2s` },
-  { id: 'knockback', cat: 'tactical', icon: '🌀', name: 'Knockback',   baseCost: 40,  growth: 1.5, max: 999,
+  { id: 'knockback', cat: 'tactical', icon: '🌀', name: 'Knockback',   baseCost: 40,  growth: 1.6, max: 999,
     desc: (s) => `${fmt(s.knockback)} impact force` },
-  { id: 'blast',     cat: 'tactical', icon: '💥', name: 'Nova Blast',  baseCost: 60,  growth: 1.6, max: 999,
+  { id: 'blast',     cat: 'tactical', icon: '💥', name: 'Nova Blast',  baseCost: 60,  growth: 1.68, max: 999,
     desc: (s) => `${fmt(s.blastDamage)} dmg • ${Math.round(s.blastRadius)}px • ${s.blastCooldown.toFixed(1)}s` },
   { id: 'repulsor',  cat: 'tactical', icon: '◎', name: 'Repulsor',    baseCost: 180, growth: 2.0, max: 8,
     desc: (s) => `${Math.round(s.repulsorRadius)}px aura • ${fmt(s.repulsorDps)} dmg/s` },
@@ -44,23 +44,35 @@ export const UPGRADES = [
       : `×${s.odMult.toFixed(1)} fire rate for ${s.odDuration.toFixed(1)}s • ${Math.round(s.odCooldown)}s cd` },
 
   // ----- CORE -----
-  { id: 'corehp',    cat: 'core', icon: '🛡', name: 'Core HP',  baseCost: 50,  growth: 1.55, max: 999,
+  { id: 'corehp',    cat: 'core', icon: '🛡', name: 'Core HP',  baseCost: 60,  growth: 1.62, max: 999,
     desc: (s) => `${fmt(s.coreMaxHp)} max HP` },
-  { id: 'regen',     cat: 'core', icon: '♻', name: 'Regen',    baseCost: 90,  growth: 1.7,  max: 999,
+  { id: 'regen',     cat: 'core', icon: '♻', name: 'Regen',    baseCost: 90,  growth: 1.78,  max: 999,
     desc: (s) => `${s.regen.toFixed(1)} HP/sec` },
   { id: 'shield',    cat: 'core', icon: '🔰', name: 'Aegis',    baseCost: 220, growth: 1.7,  max: 999,
     desc: (s) => `${fmt(s.shieldMax)} shield, recharges after 6s calm` },
   { id: 'lifesteal', cat: 'core', icon: '🩸', name: 'Leech',    baseCost: 200, growth: 2.2,  max: 5,
     desc: (s) => `Kills heal ${(s.lifesteal * 100).toFixed(1)}% core HP` },
-  { id: 'gold',      cat: 'core', icon: '🜚', name: 'Greed',    baseCost: 100, growth: 1.8,  max: 999,
+  { id: 'gold',      cat: 'core', icon: '🜚', name: 'Greed',    baseCost: 100, growth: 1.92,  max: 999,
     desc: (s) => `×${s.goldMult.toFixed(2)} gold from kills` },
-  { id: 'battery',   cat: 'core', icon: '🔋', name: 'Reactor',  baseCost: 150, growth: 1.9,  max: 10,
+  { id: 'battery',   cat: 'core', icon: '🔋', name: 'Reactor',  baseCost: 150, growth: 2.0,  max: 10,
     desc: (s) => `+${s.batteryLvl * 2} gold/s, scales with wave` },
   { id: 'drone',     cat: 'core', icon: '🛸', name: 'Drone',    baseCost: 1500, growth: 6.0, max: 2,
     desc: (s) => s.drones === 0
       ? 'Companion drone: shoots & fetches power-ups'
       : `${s.drones} ${s.drones === 1 ? 'drone' : 'drones'} fighting & fetching` },
 ];
+
+// Wave at which each gold upgrade unlocks — turns the shop into an
+// early → mid → late progression path instead of dumping everything at wave 1.
+// Anything not listed is available from the start (damage, fire rate, HP, etc.).
+export const UNLOCK_WAVE = {
+  pierce: 3, frost: 4, shield: 4,
+  explosive: 5, repulsor: 5, battery: 5,
+  multishot: 6, critdmg: 6,
+  bounce: 7, orbital: 8, lifesteal: 8,
+  turret: 10, singularity: 12, overdrive: 12,
+  drone: 15,
+};
 
 // Shard upgrades — permanent across prestiges. desc() receives the level.
 export const SHARD_UPGRADES = [
