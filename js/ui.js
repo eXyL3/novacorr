@@ -295,10 +295,10 @@ export function initUI(game, audio) {
   });
 
   $('resetSave').addEventListener('click', () => {
-    if (!confirm('Reset ALL progress? Gold, shards and every upgrade will be wiped.')) return;
+    if (!confirm('Reset ALL progress? Gold, shards, upgrades, scores and wave will be wiped — a brand-new run.')) return;
     if (!confirm('Really? This cannot be undone.')) return;
-    try { localStorage.removeItem('novaCoreSave_v1'); } catch (e) { /* ignore */ }
-    location.reload();
+    game.hardReset();      // wipe storage + lock out any further saves
+    location.reload();     // reboot into a fresh run
   });
 
   // ---------- wave banner & events ----------

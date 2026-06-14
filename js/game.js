@@ -20,6 +20,7 @@ export class Game {
     this.timeMult = 1;  // slow-mo / hit-stop envelope, read by main loop for particles
     this.hitStop = 0;   // brief full freeze-frame on impactful kills (real seconds)
     this.coreHurt = 0;  // red screen-edge flash when the core is hit
+    this.noSave = false; // set on hard reset so nothing re-writes the wiped save
     this.opts = { shake: true, dmgText: true, quality: 'high', theme: 'nova' };
     this.life = { kills: 0, bossKills: 0, ults: 0, runs: 0, maxCombo: 0, maxGold: 0 };
     this.ach = {}; // unlocked achievement ids
@@ -1856,7 +1857,22 @@ export class Game {
 
   // ---------- persistence ----------
 
+  // Nuke every trace of progress and lock out any further writes, so the next
+  // load starts a genuinely brand-new run (no upgrades, shards, wave or scores).
+  hardReset() {
+    this.noSave = true;
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      // defensive: drop any other novaCore* keys (older/renamed saves)
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.toLowerCase().startsWith('novacore')) localStorage.removeItem(k);
+      }
+    } catch (e) { /* storage unavailable */ }
+  }
+
   save() {
+    if (this.noSave) return; // a hard reset is in progress — never resurrect the save
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
         v: 1,
