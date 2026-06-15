@@ -15,6 +15,7 @@ export function initUI(game, audio) {
   let currentTab = 'offense';
   const QTYS = [1, 10, 'max'];
   let qtyIdx = 0;
+  const wasLocked = {}; // tracks which upgrades were seen wave-locked, to glow on unlock
 
   const cards = new Map();
   for (const def of UPGRADES) {
@@ -79,7 +80,15 @@ export function initUI(game, audio) {
       if (locked) {
         cost.textContent = '🔒 WAVE ' + lockWave;
         btn.classList.add('locked');
+        wasLocked[def.id] = true;
         continue;
+      }
+      // celebrate an upgrade the moment its wave gate opens (only if it was seen locked)
+      if (wasLocked[def.id]) {
+        wasLocked[def.id] = false;
+        btn.classList.remove('justUnlocked');
+        void btn.offsetWidth;
+        btn.classList.add('justUnlocked');
       }
       if (maxed) {
         cost.textContent = 'MAXED';

@@ -1079,6 +1079,13 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
 .card.locked { opacity: 0.4; cursor: default; border-color: rgba(255, 255, 255, 0.08); }
 .card.locked .cCost { color: var(--dim); }
 
+.card.justUnlocked { animation: cardUnlock 1.6s ease-out; }
+@keyframes cardUnlock {
+  0%   { box-shadow: 0 0 0 rgba(125, 249, 255, 0); border-color: rgba(125, 249, 255, 0.9); transform: scale(1.04); }
+  40%  { box-shadow: 0 0 22px rgba(125, 249, 255, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(125, 249, 255, 0); transform: scale(1); }
+}
+
 .card .cTop {
   display: flex;
   justify-content: space-between;

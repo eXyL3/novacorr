@@ -21,6 +21,7 @@ export class Game {
     this.hitStop = 0;   // brief full freeze-frame on impactful kills (real seconds)
     this.coreHurt = 0;  // red screen-edge flash when the core is hit
     this.noSave = false; // set on hard reset so nothing re-writes the wiped save
+    this.aimTarget = -1; // id of the enemy the core is currently locked onto (for the reticle)
     this.opts = { shake: true, dmgText: true, quality: 'high', theme: 'nova' };
     this.life = { kills: 0, bossKills: 0, ults: 0, runs: 0, maxCombo: 0, maxGold: 0 };
     this.ach = {}; // unlocked achievement ids
@@ -1629,9 +1630,11 @@ export class Game {
       * (this.odActive > 0 ? st.odMult : 1)
       * (this.frenzyT > 0 ? 1.8 : 1);
     const bulletDmg = st.damage * (this.quadT > 0 ? 3 : 1);
+    // pick the current target every frame so the on-screen reticle tracks smoothly
+    const target = this.nearestEnemy(0, 0, st.targetRange);
+    this.aimTarget = target ? target.id : -1;
     this.fireTimer -= dt;
     if (this.fireTimer <= 0) {
-      const target = this.nearestEnemy(0, 0, st.targetRange);
       if (target) {
         this.fireTimer = 1 / fireRate;
         const aim = this.shoot(0, 0, CORE_R + 4, target, bulletDmg, st.multishot, st.pierce, st.targetRange);

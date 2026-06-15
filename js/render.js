@@ -170,10 +170,12 @@ export function draw(ctx, game, w, h) {
     ctx.strokeStyle = 'rgba(125,249,255,0.2)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([5, 9]);
+    ctx.lineDashOffset = -t * 18; // slow scanner sweep around the boundary
     ctx.beginPath();
     ctx.arc(0, 0, game.stats.targetRange, 0, TAU);
     ctx.stroke();
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
   }
 
   // core glow (overdrive turns it furnace-orange; flares brighter with combo)
@@ -434,6 +436,28 @@ export function draw(ctx, game, w, h) {
       ctx.fillRect(e.x - bw / 2, e.y - e.r - 8, bw * clamp(e.hp / e.maxHp, 0, 1), 3);
     }
     if (spawning) { ctx.restore(); ctx.globalAlpha = 1; }
+  }
+
+  // --- targeting reticle on the core's current target ---
+  if (game.aimTarget >= 0) {
+    const tgt = game.enemies.find((e) => e.id === game.aimTarget && !e.dead);
+    if (tgt) {
+      const rr = tgt.r + 9;
+      ctx.save();
+      ctx.translate(tgt.x, tgt.y);
+      ctx.rotate(t * 1.1);
+      ctx.strokeStyle = cMain;
+      ctx.lineWidth = 1.6;
+      ctx.globalAlpha = 0.9;
+      for (let i = 0; i < 4; i++) {       // four rotating corner brackets
+        const a = (i * Math.PI) / 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, rr, a + 0.35, a + Math.PI / 2 - 0.35);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
   }
 
   // --- turrets ---
