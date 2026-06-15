@@ -1058,6 +1058,10 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
 .card[data-cat="offense"]  { border-left-color: rgba(255, 107, 107, 0.55); }
 .card[data-cat="tactical"] { border-left-color: rgba(125, 249, 255, 0.55); }
 .card[data-cat="core"]     { border-left-color: rgba(77, 255, 136, 0.55); }
+.card[data-upgrade="range"] {
+  border-color: rgba(125, 249, 255, 0.38);
+  background: linear-gradient(135deg, rgba(20, 45, 65, 0.94), rgba(20, 28, 52, 0.88));
+}
 
 .card.affordable {
   opacity: 1;
@@ -1308,6 +1312,7 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
   .tab span { margin-right: 2px; font-size: 11px; }
   #qtyBtn { min-width: 48px; padding: 7px 8px; font-size: 10px; }
   #shopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+  .card[data-upgrade="range"] { grid-column: 1 / -1; }
   .card { border-radius: 8px; padding: 6px 7px; }
   .card .cTop { font-size: 12px; gap: 4px; }
   .card .cTop > span:first-child {

@@ -18,7 +18,7 @@ Then open **http://localhost:8377/nova-core/** — works on desktop and mobile
 ## How to play
 
 - The core auto-fires at the nearest enemy. You don't aim — you **build**.
-- Weapons have visible, finite targeting range. Upgrade **Targeting** to extend
+- Weapons have visible, finite targeting range. Upgrade **Core Range** to extend
   the core's reach; turret levels improve their range, damage, and fire rate.
 - **Tap / click anywhere** to fire a Nova Blast: AoE damage + a physics shockwave
   that hurls enemies away. Watch the outer ring around the core for its cooldown.

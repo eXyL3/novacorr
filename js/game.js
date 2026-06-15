@@ -157,7 +157,7 @@ export class Game {
       fireRate: 1.6 * (1 + 0.10 * l('firerate')) * (1 + 0.10 * sh('overclock'))
         * (1 + 0.25 * p('adrenaline')) * (1 + 0.10 * p('swift'))
         * (art('flux') ? 1.08 : 1) * (cls === 'pyro' ? 0.9 : 1),
-      targetRange: 235 + 17 * l('range'),
+      targetRange: 135 + 15 * l('range'),
       multishot: 1 + l('multishot') + (art('forge') ? 1 : 0),
       pierce: l('pierce'),
       projSpeed: 430 * (1 + 0.08 * sh('overclock')) * (1 + 0.20 * p('swift')),
@@ -187,10 +187,11 @@ export class Game {
       batteryLvl: l('battery'),
       orbitals: l('orbital') + p('twin'),
       turrets: l('turret') + p('sentry'),
-      turretRange: 175 + 18 * l('turret'),
+      turretRange: 120 + 14 * l('turret'),
       turretDamage: 0.45 + 0.12 * l('turret'),
       turretFireRate: 0.45 + 0.05 * l('turret'),
       drones: l('drone'),
+      droneRange: 180 + 20 * l('drone'),
       mirror: p('mirror'),
       autoBlast: sh('autoblast') > 0,
       cull: p('executioner') > 0,
@@ -389,7 +390,14 @@ export class Game {
     return Math.floor(Math.pow(this.wave / 3, 1.6));
   }
 
-  spawnRadius() {
+  spawnRadius(angle) {
+    if (Number.isFinite(angle)) {
+      const w2 = this.view.w / 2;
+      const h2 = this.view.h / 2;
+      const cx = Math.max(0.001, Math.abs(Math.cos(angle)));
+      const sy = Math.max(0.001, Math.abs(Math.sin(angle)));
+      return Math.min(w2 / cx, h2 / sy) + 45;
+    }
     return Math.hypot(this.view.w, this.view.h) / 2 + 60;
   }
 
@@ -632,7 +640,7 @@ export class Game {
     const T = ENEMY_TYPES[type];
     if (x === undefined) {
       const a = rand(0, TAU);
-      const R = this.spawnRadius();
+      const R = this.spawnRadius(a);
       x = Math.cos(a) * R;
       y = Math.sin(a) * R;
     }
@@ -696,7 +704,7 @@ export class Game {
     return best;
   }
 
-  shoot(sx, sy, muzzle, target, dmg, count, pierce) {
+  shoot(sx, sy, muzzle, target, dmg, count, pierce, travelRange = this.stats.targetRange) {
     const st = this.stats;
     const base = Math.atan2(target.y - sy, target.x - sx);
     for (let i = 0; i < count; i++) {
@@ -709,7 +717,7 @@ export class Game {
         bounce: st.bounces,
         wallB: st.mirror,
         color: st.explosionPct > 0 ? '#ffb13d' : '#aef6ff',
-        r: 4, life: Math.max(0.45, (st.targetRange + 35) / st.projSpeed),
+        r: 4, life: Math.max(0.35, (travelRange + 25) / st.projSpeed),
         hits: new Set(),
         dead: false,
       });
@@ -1383,7 +1391,7 @@ export class Game {
         const n = Math.min(14, 5 + Math.floor(this.wave / 4));
         for (let i = 0; i < n; i++) {
           const a = this.warning.angle + rand(-0.25, 0.25);
-          const R = this.spawnRadius() + rand(0, 60);
+          const R = this.spawnRadius(a) + rand(0, 35);
           this.spawnEnemy(this.wave >= 3 && chance(0.35) ? 'runner' : 'grunt', Math.cos(a) * R, Math.sin(a) * R);
         }
         this.waveTotal += n;
@@ -1626,7 +1634,7 @@ export class Game {
       const target = this.nearestEnemy(0, 0, st.targetRange);
       if (target) {
         this.fireTimer = 1 / fireRate;
-        const aim = this.shoot(0, 0, CORE_R + 4, target, bulletDmg, st.multishot, st.pierce);
+        const aim = this.shoot(0, 0, CORE_R + 4, target, bulletDmg, st.multishot, st.pierce, st.targetRange);
         this.muzzle = { a: aim, t: 0.07 };
         this.audio.play('shoot');
       } else {
@@ -1648,7 +1656,7 @@ export class Game {
         if (target) {
           t.cd = 1 / (fireRate * st.turretFireRate);
           t.aim = Math.atan2(target.y - t.y, target.x - t.x);
-          this.shoot(t.x, t.y, 10, target, bulletDmg * st.turretDamage, 1, 0);
+          this.shoot(t.x, t.y, 10, target, bulletDmg * st.turretDamage, 1, 0, st.turretRange);
         }
       }
     }
@@ -1685,11 +1693,11 @@ export class Game {
       }
       dr.cd -= dt;
       if (dr.cd <= 0) {
-        const target = this.nearestEnemy(dr.x, dr.y);
-        if (target && Math.hypot(target.x - dr.x, target.y - dr.y) < 340) {
+        const target = this.nearestEnemy(dr.x, dr.y, st.droneRange);
+        if (target) {
           dr.cd = 1 / (fireRate * 0.5);
           dr.aim = Math.atan2(target.y - dr.y, target.x - dr.x);
-          this.shoot(dr.x, dr.y, 8, target, bulletDmg * 0.5, 1, 0);
+          this.shoot(dr.x, dr.y, 8, target, bulletDmg * 0.5, 1, 0, st.droneRange);
         }
       }
     }

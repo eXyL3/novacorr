@@ -167,8 +167,8 @@ export function draw(ctx, game, w, h) {
 
   // The core no longer fires across the arena; keep its upgradeable boundary readable.
   if (game.stats && game.stats.targetRange) {
-    ctx.strokeStyle = 'rgba(125,249,255,0.09)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(125,249,255,0.2)';
+    ctx.lineWidth = 1.5;
     ctx.setLineDash([5, 9]);
     ctx.beginPath();
     ctx.arc(0, 0, game.stats.targetRange, 0, TAU);

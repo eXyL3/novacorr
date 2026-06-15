@@ -21,6 +21,7 @@ export function initUI(game, audio) {
     const btn = document.createElement('button');
     btn.className = 'card';
     btn.dataset.cat = def.cat;
+    btn.dataset.upgrade = def.id;
     btn.innerHTML = `
       <div class="cTop"><span>${def.icon} ${def.name}</span><span class="cLvl"></span></div>
       <div class="cDesc"></div>
@@ -69,7 +70,11 @@ export function initUI(game, audio) {
       const lockWave = UNLOCK_WAVE[def.id] || 0;
       const locked = lvl === 0 && game.wave < lockWave; // already-bought stays usable
       lvlEl.textContent = 'LV ' + lvl + (def.max <= 30 ? '/' + def.max : '');
-      desc.textContent = def.desc(game.stats);
+      if (def.id === 'range' && !maxed) {
+        desc.textContent = `${Math.round(game.stats.targetRange)}px → ${Math.round(game.stats.targetRange + 15)}px next`;
+      } else {
+        desc.textContent = def.desc(game.stats);
+      }
       btn.classList.remove('affordable', 'maxed', 'locked');
       if (locked) {
         cost.textContent = '🔒 WAVE ' + lockWave;
