@@ -1012,9 +1012,10 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
 }
 
 .tab span { margin-right: 4px; font-size: 13px; }
-.tab[data-tab="offense"].active  { color: #ff8a8a; border-color: rgba(255, 107, 107, 0.35); background: rgba(255, 107, 107, 0.12); }
-.tab[data-tab="tactical"].active { color: var(--cyan); border-color: rgba(125, 249, 255, 0.35); background: rgba(125, 249, 255, 0.1); }
-.tab[data-tab="core"].active     { color: var(--green); border-color: rgba(77, 255, 136, 0.35); background: rgba(77, 255, 136, 0.1); }
+.tab.active { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+.tab[data-tab="offense"].active  { color: #ff8a8a; border-color: rgba(255, 107, 107, 0.5); background: rgba(255, 107, 107, 0.16); }
+.tab[data-tab="tactical"].active { color: var(--cyan); border-color: rgba(125, 249, 255, 0.5); background: rgba(125, 249, 255, 0.14); }
+.tab[data-tab="core"].active     { color: var(--green); border-color: rgba(77, 255, 136, 0.5); background: rgba(77, 255, 136, 0.14); }
 
 #qtyBtn {
   background: rgba(20, 28, 52, 0.85);
@@ -1031,27 +1032,30 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
 
 #shopGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  gap: 7px;
   overflow-y: auto;
 }
 
 #shardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 7px;
 }
 
 .card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   text-align: left;
   background: rgba(20, 28, 52, 0.85);
   border: 1px solid rgba(125, 249, 255, 0.12);
   border-left-width: 3px;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
   opacity: 0.55;
 }
 
@@ -1086,22 +1090,35 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
   100% { box-shadow: 0 0 0 rgba(125, 249, 255, 0); transform: scale(1); }
 }
 
-.card .cTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-weight: 700;
-  font-size: 14px;
+/* icon badge — tinted to the upgrade's category for instant scanning */
+.card .cIcon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 16px;
+  background: rgba(125, 249, 255, 0.1);
+  border: 1px solid rgba(125, 249, 255, 0.15);
 }
+.card[data-cat="offense"]  .cIcon { background: rgba(255, 107, 107, 0.13); border-color: rgba(255, 107, 107, 0.3); }
+.card[data-cat="tactical"] .cIcon { background: rgba(125, 249, 255, 0.13); border-color: rgba(125, 249, 255, 0.3); }
+.card[data-cat="core"]     .cIcon { background: rgba(77, 255, 136, 0.13);  border-color: rgba(77, 255, 136, 0.3); }
+.card.shardCard .cIcon { background: rgba(199, 125, 255, 0.14); border-color: rgba(199, 125, 255, 0.3); }
 
-.card .cLvl {
-  color: var(--dim);
-  font-size: 10px;
+.card .cMid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.card .cName { font-weight: 700; font-size: 13px; line-height: 1.15; }
+.card .cDesc {
+  font-size: 11px;
   font-weight: 600;
-  font-family: var(--font-display);
+  color: var(--dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.card .cDesc { font-size: 12px; font-weight: 600; color: var(--dim); margin: 3px 0 5px; min-height: 14px; }
+.card .cEnd { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 
 .card .cCost {
   font-family: var(--font-display);
@@ -1109,10 +1126,22 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
   font-weight: 700;
   color: var(--gold);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
+.card .cLvl {
+  color: var(--dim);
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  white-space: nowrap;
+}
+
+/* affordable cost reads as a tappable gold pill */
+.card.affordable .cCost { background: rgba(255, 210, 77, 0.15); border-radius: 6px; padding: 2px 7px; }
 .card.shardCard .cCost { color: var(--shard); }
-.card.maxed .cCost { color: var(--gold); }
+.card.shardCard.affordable .cCost { background: rgba(199, 125, 255, 0.16); }
+.card.maxed .cCost { color: var(--gold); background: none; padding: 0; }
 
 /* ---------- overlays (game over / settings) ---------- */
 
@@ -1320,24 +1349,13 @@ body.shopOpen #shopToggle { bottom: calc(44dvh + 8px); }
   #qtyBtn { min-width: 48px; padding: 7px 8px; font-size: 10px; }
   #shopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
   .card[data-upgrade="range"] { grid-column: 1 / -1; }
-  .card { border-radius: 8px; padding: 6px 7px; }
-  .card .cTop { font-size: 12px; gap: 4px; }
-  .card .cTop > span:first-child {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .card .cLvl { font-size: 8px; white-space: nowrap; }
-  .card .cDesc {
-    margin: 2px 0 3px;
-    min-height: 12px;
-    font-size: 10px;
-    line-height: 1.1;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
+  .card { border-radius: 8px; padding: 6px 7px; gap: 7px; }
+  .card .cIcon { width: 26px; height: 26px; font-size: 14px; border-radius: 7px; }
+  .card .cName { font-size: 12px; }
+  .card .cDesc { font-size: 10px; line-height: 1.1; }
   .card .cCost { font-size: 10px; }
+  .card.affordable .cCost { padding: 2px 5px; }
+  .card .cLvl { font-size: 8px; }
 
   #shopToggle {
     bottom: calc(7px + env(safe-area-inset-bottom));

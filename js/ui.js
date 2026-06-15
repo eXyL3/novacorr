@@ -24,9 +24,15 @@ export function initUI(game, audio) {
     btn.dataset.cat = def.cat;
     btn.dataset.upgrade = def.id;
     btn.innerHTML = `
-      <div class="cTop"><span>${def.icon} ${def.name}</span><span class="cLvl"></span></div>
-      <div class="cDesc"></div>
-      <div class="cCost"></div>`;
+      <span class="cIcon">${def.icon}</span>
+      <div class="cMid">
+        <span class="cName">${def.name}</span>
+        <span class="cDesc"></span>
+      </div>
+      <div class="cEnd">
+        <span class="cCost"></span>
+        <span class="cLvl"></span>
+      </div>`;
     btn.addEventListener('click', () => {
       audio.ensure();
       const lockWave = UNLOCK_WAVE[def.id] || 0;
@@ -652,9 +658,15 @@ export function initUI(game, audio) {
     const btn = document.createElement('button');
     btn.className = 'card shardCard';
     btn.innerHTML = `
-      <div class="cTop"><span>${def.icon} ${def.name}</span><span class="cLvl"></span></div>
-      <div class="cDesc"></div>
-      <div class="cCost"></div>`;
+      <span class="cIcon">${def.icon}</span>
+      <div class="cMid">
+        <span class="cName">${def.name}</span>
+        <span class="cDesc"></span>
+      </div>
+      <div class="cEnd">
+        <span class="cCost"></span>
+        <span class="cLvl"></span>
+      </div>`;
     btn.addEventListener('click', () => {
       if (game.buyShardUpgrade(def.id)) refreshShards();
     });
